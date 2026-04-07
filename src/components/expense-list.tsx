@@ -237,11 +237,18 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
 
   if (feed.length === 0) {
     return (
-      <EmptyState
-        icon={ReceiptIcon}
-        title="No expenses yet"
-        description="Add the first expense to get started."
-      />
+      <div className="flex flex-col gap-4">
+        {action && (
+          <div className="fixed bottom-6 inset-x-0 flex justify-center z-20 sm:static sm:inset-x-auto sm:flex-none sm:flex sm:justify-end">
+            {action}
+          </div>
+        )}
+        <EmptyState
+          icon={ReceiptIcon}
+          title="No expenses yet"
+          description="Add the first expense to get started."
+        />
+      </div>
     )
   }
 

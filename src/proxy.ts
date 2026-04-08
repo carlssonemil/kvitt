@@ -11,11 +11,18 @@ const PROXY_HEADERS = ['user-agent', 'authorization', 'referer', 'content-type']
 const handler = neonAuthMiddleware({ loginUrl: '/auth/sign-in' })
 
 /**
- * Exchange the OAuth verifier for a session, properly forwarding Set-Cookie
- * headers. The built-in exchangeOAuthToken in @neondatabase/auth uses a
- * deprecated `extractResponseCookies` that splits on ", " which breaks
- * cookies containing Expires dates with commas. Safari iOS rejects the
- * resulting malformed headers, so we handle the exchange here instead.
+ * Exchange the OAuth verifier for a session without using a redirect.
+ *
+ * The built-in exchangeOAuthToken in @neondatabase/auth sets session cookies
+ * on a 3xx redirect response. Safari iOS does not reliably persist cookies
+ * from redirect responses, so the session is lost and the user gets bounced
+ * back to sign-in.
+ *
+ * Instead we exchange the verifier, inject the resulting session cookie into
+ * the forwarded request headers (so server components see the session), and
+ * set the cookie on the outgoing response (so the browser persists it). The
+ * client-side Neon Auth adapter already cleans the verifier param from the
+ * URL via history.replaceState.
  */
 async function exchangeVerifier(request: NextRequest): Promise<NextResponse | null> {
   const challenge = request.cookies.get(CHALLENGE_COOKIE)
@@ -43,23 +50,38 @@ async function exchangeVerifier(request: NextRequest): Promise<NextResponse | nu
   reqHeaders.set('Cookie', neonCookies)
   reqHeaders.set('X-Neon-Auth-Next-Middleware', 'true')
 
-  const response = await fetch(upstreamURL.toString(), {
+  const upstream = await fetch(upstreamURL.toString(), {
     method: 'GET',
     headers: reqHeaders,
   })
 
-  if (!response.ok) return null
+  if (!upstream.ok) return null
 
-  // Build redirect to the clean URL (no verifier), with properly split cookies
-  const cleanUrl = request.nextUrl.clone()
-  cleanUrl.searchParams.delete(VERIFIER_PARAM)
+  // Parse new cookie name=value pairs from the upstream Set-Cookie headers
+  // and merge them into the forwarded request's Cookie header so that
+  // server components (neonAuth / fetchSession) see the fresh session.
+  const upstreamSetCookies = upstream.headers.getSetCookie()
+  const newCookiePairs = upstreamSetCookies.map((sc) => sc.split(';')[0].trim())
+  const mergedCookie = cookieHeader
+    ? `${cookieHeader}; ${newCookiePairs.join('; ')}`
+    : newCookiePairs.join('; ')
 
-  const redirectHeaders = new Headers()
-  for (const cookie of response.headers.getSetCookie()) {
-    redirectHeaders.append('Set-Cookie', cookie)
+  const forwardedHeaders = new Headers(request.headers)
+  forwardedHeaders.set('cookie', mergedCookie)
+  forwardedHeaders.set('X-Neon-Auth-Next-Middleware', 'true')
+
+  // Pass through (no redirect) with the session cookie on both the request
+  // and the response so the page renders authenticated and the browser
+  // persists the cookie for subsequent navigations.
+  const response = NextResponse.next({
+    request: { headers: forwardedHeaders },
+  })
+
+  for (const sc of upstreamSetCookies) {
+    response.headers.append('set-cookie', sc)
   }
 
-  return NextResponse.redirect(cleanUrl, { headers: redirectHeaders })
+  return response
 }
 
 export async function proxy(request: NextRequest) {
@@ -72,7 +94,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Handle OAuth verifier exchange ourselves (fixes Safari Set-Cookie bug)
+  // Handle OAuth verifier exchange ourselves (fixes Safari iOS cookie issue)
   if (hasVerifier) {
     const result = await exchangeVerifier(request)
     if (result) return result

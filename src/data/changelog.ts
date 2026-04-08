@@ -7,8 +7,10 @@ export type ChangelogEntry = {
 export const changelog: ChangelogEntry[] = [
   {
     date: '2026-04-08',
-    title: 'Google sign-in fixes',
+    title: 'Home screen support & Google sign-in fixes',
     description: [
+      'Kvitt can now be saved to your phone\'s home screen and opens as a standalone app with no browser chrome.',
+      'Added a web app manifest, app icons, and theme color support for a native-feeling experience on both iOS and Android.',
       'Fixed Google OAuth flow so that signing in or signing up with Google now correctly establishes a session.',
       'New users signing in with Google are automatically registered — no need to sign up separately.',
     ],

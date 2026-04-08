@@ -12,6 +12,10 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#262626' },
+  ],
 }
 
 export const metadata: Metadata = {
@@ -31,6 +35,10 @@ export const metadata: Metadata = {
     card: "summary",
     title: "Kvitt — Shared expenses made simple",
     description: "Split bills and track shared expenses with friends and groups. Kvitt makes it easy to settle up.",
+  },
+  appleWebApp: {
+    title: "Kvitt",
+    statusBarStyle: "default",
   },
 };
 

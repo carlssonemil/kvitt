@@ -36,7 +36,7 @@ export default function ChangelogPage() {
                   </p>
                   <h2 className="font-semibold text-sm">{entry.title}</h2>
                   {Array.isArray(entry.description) ? (
-                    <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1">
+                    <ul className="list-disc list-outside pl-4 text-sm text-muted-foreground space-y-1 mt-1">
                       {entry.description.map((item) => (
                         <li key={item}>{item}</li>
                       ))}

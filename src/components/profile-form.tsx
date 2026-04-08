@@ -55,6 +55,7 @@ export function ProfileForm({ displayName, email }: ProfileFormProps) {
         toast.error(result.error)
         return
       }
+      await authClient.deleteUser().catch(() => {})
       await authClient.signOut()
       router.push(ROUTES.HOME)
       router.refresh()

@@ -38,11 +38,47 @@ export async function deleteAccount(): Promise<{ error?: string }> {
   if (!session || !user) return { error: 'Not authenticated' }
 
   try {
-    await sql`
+    const rows = await sql`
       UPDATE users
-      SET display_name = 'Deleted user', avatar_url = NULL, deleted_at = now()
+      SET display_name = 'Deleted user',
+          avatar_url = NULL,
+          email = 'deleted-' || id || '@deleted.local',
+          deleted_at = now()
       WHERE email = ${user.email ?? ''}
+      RETURNING id
+    ` as { id: string }[]
+
+    const userId = rows[0]?.id
+    if (!userId) return { error: 'Account not found' }
+
+    // Transfer ownership of groups to the oldest remaining member
+    await sql`
+      UPDATE groups g
+      SET created_by = (
+        SELECT gm.user_id FROM group_members gm
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+        ORDER BY gm.joined_at ASC LIMIT 1
+      )
+      WHERE g.created_by = ${userId}
+      AND EXISTS (
+        SELECT 1 FROM group_members gm
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+      )
     `
+
+    // Delete groups where the user is the sole member
+    await sql`
+      DELETE FROM groups g
+      WHERE g.created_by = ${userId}
+      AND NOT EXISTS (
+        SELECT 1 FROM group_members gm
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+      )
+    `
+
+    // Remove from all groups
+    await sql`DELETE FROM group_members WHERE user_id = ${userId}`
+
     return {}
   } catch (err) {
     console.error('deleteAccount error:', err)

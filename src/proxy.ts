@@ -78,7 +78,7 @@ async function exchangeVerifier(request: NextRequest): Promise<NextResponse | nu
   })
 
   for (const sc of upstreamSetCookies) {
-    response.headers.append('set-cookie', sc)
+    response.headers.append('set-cookie', sc.replace(/;\s*Partitioned/i, ''))
   }
 
   return response

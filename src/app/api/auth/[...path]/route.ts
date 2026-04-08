@@ -78,9 +78,12 @@ async function handler(
     if (value) respHeaders.set(header, value)
   }
 
-  // Forward each Set-Cookie as a separate header (the fix)
+  // Forward each Set-Cookie as a separate header, stripping the
+  // `Partitioned` attribute that Neon Auth adds. Safari does not support
+  // `Partitioned` and silently drops cookies that include it, which
+  // prevents the OAuth challenge cookie from ever being stored.
   for (const cookie of upstream.headers.getSetCookie()) {
-    respHeaders.append('set-cookie', cookie)
+    respHeaders.append('set-cookie', cookie.replace(/;\s*Partitioned/i, ''))
   }
 
   return new Response(upstream.body, {

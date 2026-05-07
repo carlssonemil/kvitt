@@ -26,16 +26,29 @@ export default async function InvitePage({ params }: PageProps<'/invite/[code]'>
     redirect(ROUTES.GROUP(result.groupId))
   }
 
+  const isInvalidCode = result.error === 'Invalid invite link.'
+
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-4">
       <div className="w-full max-w-sm flex flex-col gap-4 text-center">
-        <h1 className="text-2xl font-bold">Invalid invite link</h1>
+        <h1 className="text-2xl font-bold">
+          {isInvalidCode ? 'Invalid invite link' : 'Something went wrong'}
+        </h1>
         <p className="text-sm text-muted-foreground">
-          This invite link is no longer valid. Ask a group member for a new one.
+          {isInvalidCode
+            ? 'This invite link is no longer valid. Ask a group member for a new one.'
+            : 'Could not join the group right now. Try opening the link again.'}
         </p>
         <Button asChild>
-          <Link href={ROUTES.GROUPS}>Go to my groups</Link>
+          <Link href={isInvalidCode ? ROUTES.GROUPS : `/invite/${code}`}>
+            {isInvalidCode ? 'Go to my groups' : 'Try again'}
+          </Link>
         </Button>
+        {!isInvalidCode && (
+          <Button variant="ghost" asChild>
+            <Link href={ROUTES.GROUPS}>Go to my groups</Link>
+          </Button>
+        )}
       </div>
     </main>
   )

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 type Step = 'email' | 'reset'
 
@@ -23,6 +24,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
+  const t = useTranslations('auth.forgotPassword')
 
   function handleEmailSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -32,7 +34,6 @@ export function ForgotPasswordForm() {
     startTransition(async () => {
       setError(null)
       await authClient.forgetPassword.emailOtp({ email: emailValue })
-      // Always advance regardless of error — avoids leaking whether an email is registered
       setEmail(emailValue)
       setStep('reset')
     })
@@ -69,18 +70,18 @@ export function ForgotPasswordForm() {
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('emailLabel')}</Label>
             <Input id="email" name="email" type="email" autoComplete="email" required disabled={isPending} />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Sending code…' : 'Send reset code'}
+            {isPending ? t('sendingCode') : t('sendCode')}
           </Button>
           <Link
             href="/auth/sign-in"
             className="text-sm text-center text-muted-foreground hover:text-foreground transition-colors"
           >
-            Back to sign in
+            {t('backToSignIn')}
           </Link>
         </motion.form>
       ) : (
@@ -95,10 +96,10 @@ export function ForgotPasswordForm() {
           className="flex flex-col gap-4"
         >
           <p className="text-sm text-muted-foreground">
-            We sent a reset code to <span className="text-foreground font-medium">{email}</span>. Enter it below along with your new password.
+            {t('resetStep', { email })}
           </p>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="otp">Reset code</Label>
+            <Label htmlFor="otp">{t('codeLabel')}</Label>
             <Input
               id="otp"
               name="otp"
@@ -112,7 +113,7 @@ export function ForgotPasswordForm() {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">New password</Label>
+            <Label htmlFor="password">{t('newPasswordLabel')}</Label>
             <Input
               id="password"
               name="password"
@@ -122,18 +123,18 @@ export function ForgotPasswordForm() {
               minLength={8}
               disabled={isPending}
             />
-            <p className="text-xs text-muted-foreground">Must be at least 8 characters.</p>
+            <p className="text-xs text-muted-foreground">{t('passwordHint')}</p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Resetting…' : 'Reset password'}
+            {isPending ? t('resetting') : t('reset')}
           </Button>
           <button
             type="button"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => { setStep('email'); setError(null) }}
           >
-            Back
+            {t('back')}
           </button>
         </motion.form>
       )}

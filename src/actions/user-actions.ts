@@ -5,6 +5,8 @@ import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/lib/constants'
+import { cookies } from 'next/headers'
+import { LOCALE_COOKIE, isValidLocale, type Locale } from '@/i18n/locale'
 
 export async function updateProfile(formData: FormData): Promise<{ error?: string }> {
   const { session, user } = await neonAuth()
@@ -84,4 +86,28 @@ export async function deleteAccount(): Promise<{ error?: string }> {
     console.error('deleteAccount error:', err)
     return { error: 'Something went wrong. Please try again.' }
   }
+}
+
+export async function updateLocale(locale: Locale): Promise<{ error?: string }> {
+  if (!isValidLocale(locale)) return { error: 'Invalid locale' }
+
+  const cookieStore = await cookies()
+  cookieStore.set(LOCALE_COOKIE, locale, {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  })
+
+  const { session, user } = await neonAuth()
+  if (session && user) {
+    try {
+      await sql`UPDATE users SET locale = ${locale} WHERE email = ${user.email ?? ''}`
+    } catch (err) {
+      console.error('updateLocale DB error:', err)
+    }
+  }
+
+  revalidatePath('/', 'layout')
+  return {}
 }

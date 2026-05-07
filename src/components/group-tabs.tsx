@@ -4,17 +4,11 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { useTranslations } from 'next-intl'
 
-const TABS = [
-  { value: 'expenses', label: 'Expenses' },
-  { value: 'balances', label: 'Balances' },
-  { value: 'stats', label: 'Stats' },
-  { value: 'settings', label: 'Settings' },
-] as const
-
-type TabValue = typeof TABS[number]['value']
-
-const VALID_TABS = new Set(TABS.map(t => t.value))
+const TAB_VALUES = ['expenses', 'balances', 'stats', 'settings'] as const
+type TabValue = typeof TAB_VALUES[number]
+const VALID_TABS = new Set<string>(TAB_VALUES)
 
 interface GroupTabsProps {
   children: React.ReactNode
@@ -25,10 +19,11 @@ export function GroupTabs({ children, counts }: GroupTabsProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const t = useTranslations('group.tabs')
 
   const initialTab = (() => {
-    const t = searchParams.get('tab')
-    return t && VALID_TABS.has(t as TabValue) ? t as TabValue : 'expenses'
+    const tab = searchParams.get('tab')
+    return tab && VALID_TABS.has(tab) ? tab as TabValue : 'expenses'
   })()
 
   const [tab, setTab] = useState<string>(initialTab)
@@ -85,12 +80,12 @@ export function GroupTabs({ children, counts }: GroupTabsProps) {
                 variant="line"
                 className="w-full justify-start [&>[data-slot=tabs-trigger]]:flex-none"
               >
-                {TABS.map(t => (
-                  <TabsTrigger key={t.value} value={t.value}>
-                    {t.label}
-                    {counts?.[t.value] != null && (
+                {TAB_VALUES.map(value => (
+                  <TabsTrigger key={value} value={value}>
+                    {t(value)}
+                    {counts?.[value] != null && (
                       <Badge variant="secondary" className="ml-0.5 text-[10px] h-4 px-1.5">
-                        {counts[t.value]}
+                        {counts[value]}
                       </Badge>
                     )}
                   </TabsTrigger>

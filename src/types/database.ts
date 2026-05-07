@@ -5,6 +5,7 @@ export interface DbUser {
   display_name: string
   email: string
   avatar_url: string | null
+  locale: string
   created_at: string
   deleted_at: string | null
 }

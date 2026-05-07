@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
   display_name TEXT NOT NULL,
   email        TEXT NOT NULL UNIQUE,
   avatar_url   TEXT,
+  locale       TEXT NOT NULL DEFAULT 'en' CHECK (locale IN ('en', 'sv')),
   created_at   TIMESTAMPTZ DEFAULT now(),
   deleted_at   TIMESTAMPTZ
 );

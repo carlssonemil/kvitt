@@ -7,10 +7,13 @@ import { FadeIn } from "@/components/auth/fade-in";
 import { KvittTooltip } from "@/components/kvitt-tooltip";
 import { SiteFooter } from "@/components/site-footer";
 import { ExpensePreview } from "@/components/expense-preview";
+import { getTranslations } from "next-intl/server";
 
 export default async function Home() {
   const { session } = await neonAuth();
   if (session) redirect("/groups");
+
+  const t = await getTranslations('home');
 
   return (
     <>
@@ -25,20 +28,20 @@ export default async function Home() {
               <div className="flex flex-col gap-6">
                 <FadeIn className="flex flex-col gap-3">
                   <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-                    Split expenses with friends. Stay{" "}
+                    {t('hero.headline')}{" "}
                     <KvittTooltip />
                     .
                   </h1>
                   <p className="text-lg text-muted-foreground">
-                    Kvitt makes it easy to track shared costs, see who owes what, and settle up — all in one place.
+                    {t('hero.subheadline')}
                   </p>
                 </FadeIn>
                 <FadeIn delay={0.1} className="flex gap-3">
                   <Button asChild size="lg">
-                    <Link href="/auth/sign-up">Get started</Link>
+                    <Link href="/auth/sign-up">{t('hero.getStarted')}</Link>
                   </Button>
                   <Button asChild size="lg" variant="outline">
-                    <Link href="/auth/sign-in">Sign in</Link>
+                    <Link href="/auth/sign-in">{t('hero.signIn')}</Link>
                   </Button>
                 </FadeIn>
               </div>
@@ -52,8 +55,8 @@ export default async function Home() {
         {/* How it works */}
         <section className="flex-1 w-full max-w-4xl mx-auto px-6 py-16 md:py-20">
           <FadeIn className="flex flex-col items-center text-center gap-2 mb-10">
-            <p className="text-xs font-semibold text-primary uppercase tracking-wider">How it works</p>
-            <h2 className="text-2xl font-bold tracking-tight">Split any expense in three steps</h2>
+            <p className="text-xs font-semibold text-primary uppercase tracking-wider">{t('howItWorks.badge')}</p>
+            <h2 className="text-2xl font-bold tracking-tight">{t('howItWorks.headline')}</h2>
           </FadeIn>
           <div className="grid sm:grid-cols-3 gap-6 items-stretch">
             <FadeIn up delay={0.1} className="h-full">
@@ -61,9 +64,9 @@ export default async function Home() {
                 <div className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-lg bg-primary/10">
                   <PlusIcon className="size-4 text-primary" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Step 1</p>
-                <h3 className="font-semibold">Add expenses</h3>
-                <p className="text-sm text-muted-foreground">Log a shared cost, pick who was involved, and choose how to split it.</p>
+                <p className="text-xs font-medium text-muted-foreground">{t('howItWorks.step1Label')}</p>
+                <h3 className="font-semibold">{t('howItWorks.step1Title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('howItWorks.step1Body')}</p>
               </div>
             </FadeIn>
             <FadeIn up delay={0.2} className="h-full">
@@ -71,9 +74,9 @@ export default async function Home() {
                 <div className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-lg bg-primary/10">
                   <ReceiptIcon className="size-4 text-primary" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Step 2</p>
-                <h3 className="font-semibold">Track balances</h3>
-                <p className="text-sm text-muted-foreground">See who owes what at a glance. Balances update as expenses are added.</p>
+                <p className="text-xs font-medium text-muted-foreground">{t('howItWorks.step2Label')}</p>
+                <h3 className="font-semibold">{t('howItWorks.step2Title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('howItWorks.step2Body')}</p>
               </div>
             </FadeIn>
             <FadeIn up delay={0.3} className="h-full">
@@ -81,9 +84,9 @@ export default async function Home() {
                 <div className="absolute top-4 right-4 flex size-9 items-center justify-center rounded-lg bg-primary/10">
                   <HandCoinsIcon className="size-4 text-primary" />
                 </div>
-                <p className="text-xs font-medium text-muted-foreground">Step 3</p>
-                <h3 className="font-semibold">Settle up</h3>
-                <p className="text-sm text-muted-foreground">Record a payment to clear a debt and keep everyone's balance accurate.</p>
+                <p className="text-xs font-medium text-muted-foreground">{t('howItWorks.step3Label')}</p>
+                <h3 className="font-semibold">{t('howItWorks.step3Title')}</h3>
+                <p className="text-sm text-muted-foreground">{t('howItWorks.step3Body')}</p>
               </div>
             </FadeIn>
           </div>
@@ -97,12 +100,12 @@ export default async function Home() {
           <section className="w-full border-t border-border relative">
             <div className="relative max-w-4xl mx-auto px-6 py-16 md:py-20 flex flex-col items-center text-center gap-4">
               <FadeIn className="flex flex-col items-center gap-2">
-                <h2 className="text-2xl font-bold tracking-tight">Ready to split your first expense?</h2>
-                <p className="text-muted-foreground">Create a group, invite your friends, and start tracking.</p>
+                <h2 className="text-2xl font-bold tracking-tight">{t('cta.headline')}</h2>
+                <p className="text-muted-foreground">{t('cta.body')}</p>
               </FadeIn>
               <FadeIn delay={0.1}>
                 <Button asChild size="lg">
-                  <Link href="/auth/sign-up" className="flex items-center gap-2">Get started <ArrowRightIcon className="size-4" /></Link>
+                  <Link href="/auth/sign-up" className="flex items-center gap-2">{t('cta.button')} <ArrowRightIcon className="size-4" /></Link>
                 </Button>
               </FadeIn>
             </div>

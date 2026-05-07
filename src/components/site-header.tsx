@@ -5,9 +5,12 @@ import { neonAuth } from '@/lib/auth/server'
 import { ROUTES } from '@/lib/constants'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { LocaleSwitcher } from '@/components/locale-switcher'
+import { getTranslations } from 'next-intl/server'
 
 export async function SiteHeader() {
   const { session, user } = await neonAuth()
+  const t = await getTranslations('nav')
 
   if (!session) {
     return (
@@ -19,9 +22,10 @@ export async function SiteHeader() {
               <span>Kvitt</span>
             </Link>
             <div className="flex items-center gap-3">
+              <LocaleSwitcher />
               <ThemeToggle />
               <Button asChild variant="outline" size="sm">
-                <Link href="/auth/sign-in">Sign in</Link>
+                <Link href="/auth/sign-in">{t('signIn')}</Link>
               </Button>
             </div>
           </nav>
@@ -43,6 +47,7 @@ export async function SiteHeader() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <LocaleSwitcher />
             <ThemeToggle />
             <UserMenu name={user.name ?? user.email ?? '?'} avatarUrl={user.image} />
           </div>

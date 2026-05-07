@@ -1,0 +1,383 @@
+{
+  "common": {
+    "back": "Back",
+    "skipToMain": "Skip to main content",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "optional": "(optional)",
+    "you": "you",
+    "You": "you",
+    "selectPerson": "Select person",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "remove": "Remove"
+  },
+  "nav": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "profile": "Profile"
+  },
+  "footer": {
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "changelog": "Changelog",
+    "githubLabel": "Kvitt on GitHub"
+  },
+  "home": {
+    "tagline": "Shared expenses made simple",
+    "balancesAuto": "Balances calculated automatically",
+    "kvittTooltip": "Swedish for \"even\", as in all settled up",
+    "preview": {
+      "paidBy": "paid by {name}",
+      "you": "You",
+      "settlement": "settlement"
+    },
+    "hero": {
+      "headline": "Split expenses with friends. Stay",
+      "subheadline": "Kvitt makes it easy to track shared costs, see who owes what, and settle up — all in one place.",
+      "getStarted": "Get started",
+      "signIn": "Sign in"
+    },
+    "howItWorks": {
+      "badge": "How it works",
+      "headline": "Split any expense in three steps",
+      "step1Label": "Step 1",
+      "step1Title": "Add expenses",
+      "step1Body": "Log a shared cost, pick who was involved, and choose how to split it.",
+      "step2Label": "Step 2",
+      "step2Title": "Track balances",
+      "step2Body": "See who owes what at a glance. Balances update as expenses are added.",
+      "step3Label": "Step 3",
+      "step3Title": "Settle up",
+      "step3Body": "Record a payment to clear a debt and keep everyone's balance accurate."
+    },
+    "cta": {
+      "headline": "Ready to split your first expense?",
+      "body": "Create a group, invite your friends, and start tracking.",
+      "button": "Get started"
+    }
+  },
+  "groups": {
+    "title": "Your groups",
+    "youAreOwed": "You are owed {amount}",
+    "youOwe": "You owe {amount}",
+    "emptyTitle": "No groups yet",
+    "emptyBody": "Create a group to start splitting expenses."
+  },
+  "group": {
+    "back": "Back",
+    "youAreOwed": "You are owed {amount}",
+    "youOwe": "You owe {amount}",
+    "tabs": {
+      "expenses": "Expenses",
+      "balances": "Balances",
+      "stats": "Stats",
+      "settings": "Settings"
+    }
+  },
+  "expenseList": {
+    "noExpenses": {
+      "title": "No expenses yet",
+      "desc": "Add the first expense to get started."
+    },
+    "noMatch": {
+      "title": "No items match your filters."
+    },
+    "paidByLabel": "Paid by",
+    "paid": "paid",
+    "typeAll": "All types",
+    "typeExpenses": "Expenses",
+    "typeSettlements": "Settlements",
+    "allCategories": "All categories",
+    "thisWeek": "This week",
+    "lastWeek": "Last week",
+    "thisMonth": "This month",
+    "lastMonth": "Last month",
+    "pickDate": "Pick a date",
+    "clearFilters": "Clear filters"
+  },
+  "balance": {
+    "owes": "owes",
+    "owedToYouLabel": "Owed to you",
+    "settledTitle": "All settled up",
+    "settledDesc": "No outstanding balances in this group.",
+    "youDontOweTitle": "You don't owe anyone",
+    "youDontOweDesc": "Nothing you need to do right now.",
+    "markSettled": "Mark as settled"
+  },
+  "expense": {
+    "add": "Add expense",
+    "titleLabel": "Title",
+    "amountLabel": "Amount",
+    "currencyLabel": "Currency",
+    "paidByLabel": "Paid by",
+    "dateLabel": "Date",
+    "noteLabel": "Note",
+    "categoryLabel": "Category",
+    "noCategory": "No category",
+    "splitLabel": "Split",
+    "splitEqual": "Equal",
+    "splitExact": "Exact amounts",
+    "splitPercentage": "Percentage",
+    "splitRemaining": "Split remaining",
+    "leftSuffix": "left",
+    "dialogTitle": "Add expense",
+    "dialogDesc": "Record a new expense for this group.",
+    "noMembersError": "Select at least one member for the split",
+    "saving": "Saving…",
+    "submit": "Add expense",
+    "addedToast": "Expense added",
+    "updatedToast": "Expense updated",
+    "deletedToast": "Expense deleted",
+    "settlementLabel": "Settlement",
+    "you": "You",
+    "editTitle": "Edit expense",
+    "save": "Save",
+    "deleteTitle": "Delete expense?",
+    "deleteDesc": "This will permanently delete \"{title}\" and all its splits.",
+    "deleteConfirm": "Delete",
+    "paidBySubtitle": "Paid by {name}",
+    "titlePlaceholder": "e.g. Dinner at Luigi's",
+    "notePlaceholder": "Any details…",
+    "splitBetween": "Split between",
+    "exactRemaining": "Remaining: {remaining} {currency}",
+    "pctRemaining": "Remaining: {remaining}%"
+  },
+  "createGroup": {
+    "trigger": "Create group",
+    "dialogTitle": "Create a group",
+    "dialogDesc": "Give your group a name. You can invite others after it's created.",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Weekend trip",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "What's this group for?",
+    "currencyLabel": "Currency",
+    "creating": "Creating…",
+    "submit": "Create group",
+    "successToast": "Group created"
+  },
+  "settleUp": {
+    "trigger": "Settle up",
+    "dialogTitle": "Record a settlement",
+    "dialogDesc": "Record a payment between two group members.",
+    "whoPaidLabel": "Who paid",
+    "whoReceivedLabel": "Who received",
+    "amountLabel": "Amount ({currency})",
+    "noteLabel": "Note",
+    "submit": "Save settlement",
+    "submitting": "Saving…",
+    "successToast": "Settlement recorded",
+    "updatedToast": "Settlement updated",
+    "removedToast": "Settlement removed",
+    "editTitle": "Edit settlement",
+    "save": "Save",
+    "removeTitle": "Remove settlement?",
+    "removeConfirm": "Remove",
+    "removeDesc": "This will remove the recorded settlement between {payer} and {payee}.",
+    "paidSubtitle": "{payer} paid {payee}",
+    "notePlaceholder": "e.g. Cash payment",
+    "amountLabelPlain": "Amount"
+  },
+  "stats": {
+    "totalExpenses": "Total expenses",
+    "totalAmount": "Total amount",
+    "thisMonth": "{amount} {currency} this month",
+    "vsLastMonth": "vs last month",
+    "youPaid": "You paid",
+    "yourShare": "Your share",
+    "noExpenses": "No expenses yet",
+    "paymentSplit": "Payment split",
+    "spendingByCategory": "Spending by category",
+    "monthlySpending": "Monthly spending",
+    "topExpenses": "Top expenses"
+  },
+  "groupSettings": {
+    "groupDetails": "Group details",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "nameLabel": "Name",
+    "descriptionLabel": "Description",
+    "currencyLabel": "Currency",
+    "inviteLink": "Invite link",
+    "copyInviteLink": "Copy invite link",
+    "inviteLinkCopied": "Invite link copied",
+    "regenerateLabel": "Regenerate invite link",
+    "regenerateTitle": "Regenerate invite link?",
+    "regenerateDesc": "The old link will stop working. Anyone who hasn't joined yet will need the new link.",
+    "regenerateConfirm": "Regenerate",
+    "inviteLinkRegenerated": "Invite link regenerated",
+    "membersLabel": "Members",
+    "removeMemberTitle": "Remove member?",
+    "removeMemberConfirm": "Remove",
+    "memberRemoved": "Member removed",
+    "dangerZone": "Danger zone",
+    "deleteGroupTitle": "Delete group?",
+    "deleteGroupDesc": "This will permanently delete the group and all its expenses and settlements. This cannot be undone.",
+    "deleteGroupConfirm": "Delete group",
+    "deleteGroupButton": "Delete group",
+    "groupDeleted": "Group deleted"
+  },
+  "profile": {
+    "title": "Profile",
+    "displayNameLabel": "Display name",
+    "emailLabel": "Email",
+    "saving": "Saving…",
+    "saved": "Saved",
+    "dangerZone": "Danger zone",
+    "dangerDesc": "Permanently delete your account. Your name will be replaced with \"Deleted user\" in all groups, but expense history will be preserved.",
+    "deleteAccount": "Delete account",
+    "deleteDialogTitle": "Delete account?",
+    "deleteDialogDesc": "This will permanently delete your account. Your expenses will remain but your name will show as 'Deleted user'. This cannot be undone.",
+    "deleteConfirmLabel": "Delete account"
+  },
+  "categories": {
+    "settlement": "Settlement",
+    "accommodation": "Accommodation",
+    "entertainment": "Entertainment",
+    "food": "Food & Drink",
+    "gifts": "Gifts",
+    "groceries": "Groceries",
+    "health": "Health",
+    "rent": "Rent",
+    "shopping": "Shopping",
+    "subscriptions": "Subscriptions",
+    "transport": "Transport",
+    "travel": "Travel",
+    "utilities": "Utilities",
+    "other": "Other",
+    "uncategorized": "Uncategorized"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: March 2026",
+    "whatWeCollect": "What we collect",
+    "whatWeCollectBody": "We collect your name, email address, and the data you create in the app — groups, expenses, and settlements. We also collect basic usage data to keep the service running.",
+    "howWeUseIt": "How we use it",
+    "howWeUseItBody": "Your data is used solely to provide the Kvitt service. We don't sell it, share it with advertisers, or use it for any purpose beyond operating the app.",
+    "dataStorage": "Data storage",
+    "dataStorageBody": "Data is stored securely in the cloud. We take reasonable technical measures to protect it, but no system is perfectly secure.",
+    "yourRights": "Your rights",
+    "yourRightsBody": "You can request deletion of your account and all associated data at any time by contacting us.",
+    "contact": "Contact",
+    "contactBody": "Questions?"
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: March 2026",
+    "acceptance": "Acceptance",
+    "acceptanceBody": "By using Kvitt, you agree to these terms. If you don't agree, please don't use the service.",
+    "theService": "The service",
+    "theServiceBody": "Kvitt is a tool for tracking shared expenses. It's provided as-is, free of charge. We may change or discontinue it at any time.",
+    "yourAccount": "Your account",
+    "yourAccountBody": "You're responsible for keeping your account secure and for all activity under it. Don't use Kvitt for anything illegal or harmful to others.",
+    "liability": "Liability",
+    "liabilityBody": "Kvitt is provided without warranties of any kind. We're not liable for any damages arising from your use of the service, including data loss or financial disputes between users.",
+    "changes": "Changes",
+    "changesBody": "We may update these terms occasionally. Continued use of Kvitt after changes means you accept the new terms.",
+    "contact": "Contact",
+    "contactBody": "Questions?"
+  },
+  "changelog": {
+    "title": "Changelog",
+    "subtitle": "New updates and improvements to Kvitt.",
+    "entries": [
+      {
+        "date": "2026-05-07",
+        "title": "English & Swedish: full i18n",
+        "description": [
+          "The app is now fully internationalised with English and Swedish support.",
+          "A language switcher with flag icons appears in the header. Your preference is saved to your account.",
+          "All UI strings, form labels, error messages, categories, and page content have been translated.",
+          "Date and number formatting are now locale-aware throughout the app."
+        ]
+      },
+      {
+        "date": "2026-04-08",
+        "title": "Home screen support & Google sign-in fixes",
+        "description": [
+          "Kvitt can now be saved to your phone's home screen and opens as a standalone app with no browser chrome.",
+          "Added a web app manifest, app icons, and theme color support for a native-feeling experience on both iOS and Android.",
+          "Fixed Google OAuth flow so that signing in or signing up with Google now correctly establishes a session.",
+          "New users signing in with Google are automatically registered, no need to sign up separately."
+        ]
+      },
+      {
+        "date": "2026-04-07",
+        "title": "Bug fixes",
+        "description": [
+          "Fixed the \"Add expense\" button not appearing in groups with no expenses on mobile.",
+          "Fixed a layout scaling issue on mobile caused by a missing viewport meta tag."
+        ]
+      },
+      {
+        "date": "2026-04-02",
+        "title": "Initial release",
+        "description": [
+          "Kvitt is live! Track and split shared expenses with friends and groups."
+        ]
+      }
+    ]
+  },
+  "auth": {
+    "tagline": "Shared expenses made simple",
+    "oauth": {
+      "or": "or",
+      "continueWithGoogle": "Continue with Google"
+    },
+    "signIn": {
+      "pageTitle": "Welcome back",
+      "pageSubtitle": "Sign in to your Kvitt account",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "forgotPassword": "Forgot password?",
+      "submitting": "Signing in…",
+      "submit": "Sign in",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up"
+    },
+    "signUp": {
+      "pageTitle": "Create an account",
+      "pageSubtitle": "Fill in the form below to get started",
+      "nameLabel": "Display name",
+      "emailLabel": "Email",
+      "emailHint": "We'll use this to contact you. We will not share your email with anyone else.",
+      "passwordLabel": "Password",
+      "passwordHint": "Must be at least 8 characters.",
+      "submitting": "Creating account…",
+      "submit": "Create account",
+      "verifyStep": "We sent a verification code to {email}. Enter it below to confirm your account.",
+      "codeLabel": "Verification code",
+      "verifying": "Verifying…",
+      "verify": "Verify email",
+      "back": "Back",
+      "alreadyHaveAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "terms": "By signing up, you agree to our",
+      "termsLink": "Terms of Service",
+      "and": "and",
+      "privacyLink": "Privacy Policy",
+      "invitedBadge": "You've been invited",
+      "invitedHeadlinePre": "Join",
+      "invitedHeadlinePost": "on Kvitt",
+      "invitedBody": "Sign up to start tracking shared expenses with your group.",
+      "howItWorksBadge": "How it works",
+      "howItWorksHeadline": "Track and split expenses with friends",
+      "howItWorksBody": "Add expenses, see who owes what, and settle up in seconds."
+    },
+    "forgotPassword": {
+      "pageTitle": "Reset your password",
+      "pageSubtitle": "We'll send a code to your email",
+      "emailLabel": "Email",
+      "sendingCode": "Sending code…",
+      "sendCode": "Send reset code",
+      "resetStep": "We sent a reset code to {email}. Enter it below along with your new password.",
+      "codeLabel": "Reset code",
+      "newPasswordLabel": "New password",
+      "passwordHint": "Must be at least 8 characters.",
+      "resetting": "Resetting…",
+      "reset": "Reset password",
+      "back": "Back",
+      "backToSignIn": "Back to sign in"
+    }
+  }
+}

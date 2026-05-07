@@ -14,6 +14,7 @@ import { Currency } from '@/components/currency'
 import { UserAvatar } from '@/components/user-avatar'
 import { deleteSettlement, updateSettlement } from '@/actions/settlement-actions'
 import type { SettlementWithUsers } from '@/lib/queries'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface Member {
   id: string
@@ -31,16 +32,17 @@ interface SettlementDetailProps {
   onOpenChange: (open: boolean) => void
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })
-}
-
 export function SettlementDetail({ settlement, groupId, currentUserId, currency, members, open, onOpenChange }: SettlementDetailProps) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
   const [paidBy, setPaidBy] = useState(settlement.paid_by)
   const [paidTo, setPaidTo] = useState(settlement.paid_to)
+  const t = useTranslations('settleUp')
+  const tc = useTranslations('common')
+  const te = useTranslations('expense')
+  const locale = useLocale()
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
   function enterEdit() {
     setPaidBy(settlement.paid_by)
@@ -67,7 +69,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
         toast.error(result.error)
         return
       }
-      toast.success('Settlement updated')
+      toast.success(t('updatedToast'))
       setIsEditing(false)
       router.refresh()
     })
@@ -83,7 +85,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
         toast.error(result.error)
         return
       }
-      toast.success('Settlement removed')
+      toast.success(t('removedToast'))
       onOpenChange(false)
       router.refresh()
     })
@@ -93,20 +95,20 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
     const footer = (
       <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
         <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setIsEditing(false)} disabled={isPending}>
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button type="submit" form="settlement-edit-form" className="flex-1 sm:flex-none" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save'}
+          {isPending ? t('submitting') : t('save')}
         </Button>
       </div>
     )
 
     return (
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} title="Edit settlement" footer={footer}>
+      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} title={t('editTitle')} footer={footer}>
         <form id="settlement-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Who paid</Label>
+              <Label>{t('whoPaidLabel')}</Label>
               <Select value={paidBy} onValueChange={setPaidBy} disabled={isPending} required>
                 <SelectTrigger className="w-full">
                   {(() => {
@@ -116,7 +118,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
                         <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
                         <span>{m.display_name}</span>
                       </div>
-                    ) : <SelectValue placeholder="Select person" />
+                    ) : <SelectValue placeholder={tc('selectPerson')} />
                   })()}
                 </SelectTrigger>
                 <SelectContent>
@@ -130,7 +132,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Who received</Label>
+              <Label>{t('whoReceivedLabel')}</Label>
               <Select value={paidTo} onValueChange={setPaidTo} disabled={isPending} required>
                 <SelectTrigger className="w-full">
                   {(() => {
@@ -140,7 +142,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
                         <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
                         <span>{m.display_name}</span>
                       </div>
-                    ) : <SelectValue placeholder="Select person" />
+                    ) : <SelectValue placeholder={tc('selectPerson')} />
                   })()}
                 </SelectTrigger>
                 <SelectContent>
@@ -155,7 +157,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-settle-amount">Amount ({settlement.currency})</Label>
+            <Label htmlFor="edit-settle-amount">{t('amountLabelPlain')} ({settlement.currency})</Label>
             <Input
               id="edit-settle-amount"
               name="amount"
@@ -170,12 +172,12 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="edit-settle-note">
-              Note <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('noteLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
             <Input
               id="edit-settle-note"
               name="note"
-              placeholder="e.g. Cash payment"
+              placeholder={t('notePlaceholder')}
               defaultValue={settlement.note ?? ''}
               disabled={isPending}
             />
@@ -189,18 +191,18 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
     <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
       <Button variant="outline" className="flex-1 sm:flex-none" onClick={enterEdit} disabled={isPending}>
         <PencilIcon className="size-4" />
-        Edit
+        {tc('edit')}
       </Button>
       <ConfirmDialog
         trigger={
           <Button variant="destructive" className="flex-1 sm:flex-none" disabled={isPending}>
             <Trash2Icon className="size-4" />
-            Remove
+            {tc('remove')}
           </Button>
         }
-        title="Remove settlement?"
-        description={`This will remove the recorded settlement between ${settlement.paid_by_name} and ${settlement.paid_to_name}.`}
-        confirmLabel="Remove"
+        title={t('removeTitle')}
+        description={t('removeDesc', { payer: settlement.paid_by_name, payee: settlement.paid_to_name })}
+        confirmLabel={t('removeConfirm')}
         variant="destructive"
         onConfirm={handleDelete}
         isPending={isPending}
@@ -208,13 +210,13 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
     </div>
   )
 
-  const payerName = settlement.paid_by === currentUserId ? 'You' : settlement.paid_by_name
-  const payeeName = settlement.paid_to === currentUserId ? 'you' : settlement.paid_to_name
+  const payerName = settlement.paid_by === currentUserId ? tc('You') : settlement.paid_by_name
+  const payeeName = settlement.paid_to === currentUserId ? tc('you') : settlement.paid_to_name
 
   const title = (
     <div className="flex flex-col gap-0.5">
-      <span className="text-xl font-semibold text-foreground">Settlement</span>
-      <span className="text-sm font-normal text-muted-foreground">{payerName} paid {payeeName}</span>
+      <span className="text-xl font-semibold text-foreground">{te('settlementLabel')}</span>
+      <span className="text-sm font-normal text-muted-foreground">{t('paidSubtitle', { payer: payerName, payee: payeeName })}</span>
     </div>
   )
 
@@ -226,20 +228,19 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
       footer={footer}
     >
       <div className="flex flex-col gap-4">
-        {/* Metadata */}
         <div className="flex flex-col gap-3 text-sm">
           <div className="flex gap-10">
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Amount</span>
+              <span className="text-xs text-muted-foreground">{t('amountLabelPlain')}</span>
               <Currency amount={Number(settlement.amount)} currency={settlement.currency} className="font-semibold" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Date</span>
-              <span>{formatDate(settlement.created_at)}</span>
+              <span className="text-xs text-muted-foreground">{te('dateLabel')}</span>
+              <span>{new Date(settlement.created_at).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })}</span>
             </div>
             {settlement.note && (
               <div className="flex flex-col gap-0.5">
-                <span className="text-xs text-muted-foreground">Note</span>
+                <span className="text-xs text-muted-foreground">{t('noteLabel')}</span>
                 <span>{settlement.note}</span>
               </div>
             )}

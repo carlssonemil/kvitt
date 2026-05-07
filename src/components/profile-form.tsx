@@ -12,6 +12,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { updateProfile, deleteAccount } from '@/actions/user-actions'
 import { authClient } from '@/lib/auth/client'
 import { ROUTES } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
 
 interface ProfileFormProps {
   displayName: string
@@ -25,6 +26,7 @@ export function ProfileForm({ displayName, email }: ProfileFormProps) {
   const [isPending, startTransition] = useTransition()
   const [isDeleting, startDeleting] = useTransition()
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const t = useTranslations('profile')
 
   function save() {
     const trimmed = name.trim()
@@ -68,18 +70,18 @@ export function ProfileForm({ displayName, email }: ProfileFormProps) {
         <div className="flex items-center justify-between mb-4">
           {saveStatus === 'saving' && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <LoaderCircleIcon className="size-3 animate-spin" /> Saving…
+              <LoaderCircleIcon className="size-3 animate-spin" /> {t('saving')}
             </span>
           )}
           {saveStatus === 'saved' && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CheckIcon className="size-3" /> Saved
+              <CheckIcon className="size-3" /> {t('saved')}
             </span>
           )}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="display_name">Display name</Label>
+            <Label htmlFor="display_name">{t('displayNameLabel')}</Label>
             <Input
               id="display_name"
               value={name}
@@ -89,7 +91,7 @@ export function ProfileForm({ displayName, email }: ProfileFormProps) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Email</Label>
+            <Label>{t('emailLabel')}</Label>
             <Input value={email} readOnly disabled className="opacity-60" />
           </div>
         </div>
@@ -98,20 +100,20 @@ export function ProfileForm({ displayName, email }: ProfileFormProps) {
       <Separator />
 
       <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-        <h2 className="text-sm font-semibold text-destructive mb-2">Danger zone</h2>
+        <h2 className="text-sm font-semibold text-destructive mb-2">{t('dangerZone')}</h2>
         <p className="text-sm text-muted-foreground mb-4">
-          Permanently delete your account. Your name will be replaced with "Deleted user" in all groups, but expense history will be preserved.
+          {t('dangerDesc')}
         </p>
         <ConfirmDialog
           trigger={
             <Button variant="destructive" disabled={isDeleting}>
               <Trash2Icon className="size-4" />
-              Delete account
+              {t('deleteAccount')}
             </Button>
           }
-          title="Delete account?"
-          description="This will permanently delete your account. Your expenses will remain but your name will show as 'Deleted user'. This cannot be undone."
-          confirmLabel="Delete account"
+          title={t('deleteDialogTitle')}
+          description={t('deleteDialogDesc')}
+          confirmLabel={t('deleteConfirmLabel')}
           variant="destructive"
           onConfirm={handleDelete}
           isPending={isDeleting}

@@ -9,7 +9,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { CalendarIcon, ReceiptIcon, XIcon } from 'lucide-react'
 import { Spinner } from '@/components/ui/spinner'
 import { CategoryIcon } from '@/components/category-icon'
-import { getCategoryIcon, getCategoryLabel } from '@/lib/categories'
+import { getCategoryIcon, EXPENSE_CATEGORIES } from '@/lib/categories'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { ExpenseDetail } from '@/components/expense-detail'
@@ -17,8 +17,9 @@ import { SettlementDetail } from '@/components/settlement-detail'
 import type { ExpenseWithPayer } from '@/types/database'
 import type { SettlementWithUsers } from '@/lib/queries'
 import { Currency } from '@/components/currency'
-import { format, isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from 'date-fns'
+import { isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
+import { useTranslations, useLocale } from 'next-intl'
 
 const PAGE_SIZE = 30
 const PULL_THRESHOLD = 80
@@ -43,12 +44,14 @@ interface ExpenseListProps {
   action?: React.ReactNode
 }
 
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })
-}
-
-function ExpenseRow({ expense, groupId, currentUserId, members }: { expense: ExpenseWithPayer; groupId: string; currentUserId: string; members: Member[] }) {
+function ExpenseRow({ expense, groupId, currentUserId, members, locale }: { expense: ExpenseWithPayer; groupId: string; currentUserId: string; members: Member[]; locale: string }) {
   const [detailOpen, setDetailOpen] = useState(false)
+  const t = useTranslations('expenseList')
+  const tc = useTranslations('common')
+
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
+  const dateLabel = new Date(expense.date).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })
+  const paidByName = expense.paid_by === currentUserId ? tc('you') : expense.paid_by_name
 
   return (
     <>
@@ -62,7 +65,7 @@ function ExpenseRow({ expense, groupId, currentUserId, members }: { expense: Exp
           <div className="flex-1 min-w-0">
             <span className="font-medium truncate block">{expense.title}</span>
             <span className="text-xs text-muted-foreground mt-0.5 block">
-              Paid by {expense.paid_by === currentUserId ? 'you' : expense.paid_by_name} · {formatDate(expense.date)}
+              {t('paidByLabel')} {paidByName} · {dateLabel}
             </span>
           </div>
           <Currency amount={Number(expense.amount)} currency={expense.currency} className="font-semibold shrink-0" />
@@ -80,8 +83,15 @@ function ExpenseRow({ expense, groupId, currentUserId, members }: { expense: Exp
   )
 }
 
-function SettlementRow({ settlement, groupId, currency, currentUserId, members }: { settlement: SettlementWithUsers; groupId: string; currency: string; currentUserId: string; members: Member[] }) {
+function SettlementRow({ settlement, groupId, currency, currentUserId, members, locale }: { settlement: SettlementWithUsers; groupId: string; currency: string; currentUserId: string; members: Member[]; locale: string }) {
   const [detailOpen, setDetailOpen] = useState(false)
+  const t = useTranslations('expenseList')
+  const tc = useTranslations('common')
+
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
+  const dateLabel = new Date(settlement.created_at).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })
+  const payerName = settlement.paid_by === currentUserId ? tc('You') : settlement.paid_by_name
+  const payeeName = settlement.paid_to === currentUserId ? tc('you') : settlement.paid_to_name
 
   return (
     <>
@@ -94,11 +104,11 @@ function SettlementRow({ settlement, groupId, currency, currentUserId, members }
           <CategoryIcon category="settlement" />
           <div className="flex-1 min-w-0">
             <p className="text-sm truncate">
-              <span className="font-medium">{settlement.paid_by === currentUserId ? 'You' : settlement.paid_by_name}</span>
-              {' paid '}
-              <span className="font-medium">{settlement.paid_to === currentUserId ? 'you' : settlement.paid_to_name}</span>
+              <span className="font-medium">{payerName}</span>
+              {` ${t('paid')} `}
+              <span className="font-medium">{payeeName}</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">{formatDate(settlement.created_at)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{dateLabel}</p>
           </div>
           <Currency amount={Number(settlement.amount)} currency={settlement.currency} className="font-semibold shrink-0" />
         </button>
@@ -122,14 +132,18 @@ function getMonthKey(item: FeedItem): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
 }
 
-function formatMonthLabel(monthKey: string): string {
+function formatMonthLabel(monthKey: string, intlLocale: string): string {
   const [year, month] = monthKey.split('-').map(Number)
   const d = new Date(year!, month! - 1, 1)
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(intlLocale, { month: 'long', year: 'numeric' })
 }
 
 export function ExpenseList({ expenses, settlements, groupId, currency, currentUserId, members, action }: ExpenseListProps) {
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('expenseList')
+  const tc = useTranslations('categories')
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'settlement'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
@@ -245,8 +259,8 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
         )}
         <EmptyState
           icon={ReceiptIcon}
-          title="No expenses yet"
-          description="Add the first expense to get started."
+          title={t('noExpenses.title')}
+          description={t('noExpenses.desc')}
         />
       </div>
     )
@@ -281,15 +295,15 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
     if (month !== lastMonth) {
       rows.push(
         <p key={`month-${month}`} className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pt-2 pb-1">
-          {formatMonthLabel(month)}
+          {formatMonthLabel(month, intlLocale)}
         </p>
       )
       lastMonth = month
     }
     rows.push(
       item.kind === 'expense'
-        ? <ExpenseRow key={item.data.id} expense={item.data} groupId={groupId} currentUserId={currentUserId} members={members} />
-        : <SettlementRow key={item.data.id} settlement={item.data} groupId={groupId} currency={currency} currentUserId={currentUserId} members={members} />
+        ? <ExpenseRow key={item.data.id} expense={item.data} groupId={groupId} currentUserId={currentUserId} members={members} locale={locale} />
+        : <SettlementRow key={item.data.id} settlement={item.data} groupId={groupId} currency={currency} currentUserId={currentUserId} members={members} locale={locale} />
     )
   }
 
@@ -305,34 +319,34 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
-              <SelectItem value="expense">Expenses</SelectItem>
-              <SelectItem value="settlement">Settlements</SelectItem>
+              <SelectItem value="all">{t('typeAll')}</SelectItem>
+              <SelectItem value="expense">{t('typeExpenses')}</SelectItem>
+              <SelectItem value="settlement">{t('typeSettlements')}</SelectItem>
             </SelectContent>
           </Select>
           {availableCategories.length > 1 && (
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger size="sm" className="w-full sm:w-auto">
                 {categoryFilter === 'all' ? (
-                  <span>All categories</span>
+                  <span>{t('allCategories')}</span>
                 ) : (() => {
                   const Icon = getCategoryIcon(categoryFilter)
                   return (
                     <span className="flex items-center gap-1.5">
                       <Icon className="size-3.5 shrink-0" />
-                      {getCategoryLabel(categoryFilter)}
+                      {tc(categoryFilter as Parameters<typeof tc>[0])}
                     </span>
                   )
                 })()}
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
+                <SelectItem value="all">{t('allCategories')}</SelectItem>
                 {availableCategories.map(cat => {
                   const Icon = getCategoryIcon(cat)
                   return (
                     <SelectItem key={cat} value={cat}>
                       <Icon className="size-3.5 shrink-0" />
-                      {getCategoryLabel(cat)}
+                      {tc(cat as Parameters<typeof tc>[0])}
                     </SelectItem>
                   )
                 })}
@@ -345,27 +359,27 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
                 <CalendarIcon data-icon="inline-start" />
                 {dateRange?.from
                   ? dateRange.to && dateRange.to.getTime() !== dateRange.from.getTime()
-                    ? `${format(dateRange.from, 'MMM d')} – ${format(dateRange.to, 'MMM d, yyyy')}`
-                    : format(dateRange.from, 'MMM d, yyyy')
-                  : 'Pick a date'}
+                    ? `${dateRange.from.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })} – ${dateRange.to.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}`
+                    : dateRange.from.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })
+                  : t('pickDate')}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <div className="flex flex-wrap gap-1 p-3 border-b">
                 {([
-                  { label: 'This week', range: () => { const now = new Date(); return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) } } },
-                  { label: 'Last week', range: () => { const prev = subWeeks(new Date(), 1); return { from: startOfWeek(prev, { weekStartsOn: 1 }), to: endOfWeek(prev, { weekStartsOn: 1 }) } } },
-                  { label: 'This month', range: () => { const now = new Date(); return { from: startOfMonth(now), to: endOfMonth(now) } } },
-                  { label: 'Last month', range: () => { const prev = subMonths(new Date(), 1); return { from: startOfMonth(prev), to: endOfMonth(prev) } } },
-                ] as const).map(({ label, range }) => (
+                  { key: 'thisWeek' as const, range: () => { const now = new Date(); return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) } } },
+                  { key: 'lastWeek' as const, range: () => { const prev = subWeeks(new Date(), 1); return { from: startOfWeek(prev, { weekStartsOn: 1 }), to: endOfWeek(prev, { weekStartsOn: 1 }) } } },
+                  { key: 'thisMonth' as const, range: () => { const now = new Date(); return { from: startOfMonth(now), to: endOfMonth(now) } } },
+                  { key: 'lastMonth' as const, range: () => { const prev = subMonths(new Date(), 1); return { from: startOfMonth(prev), to: endOfMonth(prev) } } },
+                ] as const).map(({ key, range }) => (
                   <Button
-                    key={label}
+                    key={key}
                     variant="outline"
                     size="sm"
                     className="h-7 text-xs"
                     onClick={() => setDateRange(range())}
                   >
-                    {label}
+                    {t(key)}
                   </Button>
                 ))}
               </div>
@@ -385,7 +399,7 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
               className="h-8 w-full sm:w-auto"
             >
               <XIcon data-icon="inline-start" />
-              Clear filters
+              {t('clearFilters')}
             </Button>
           )}
         </div>
@@ -409,7 +423,7 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
       {filteredFeed.length === 0 ? (
         <EmptyState
           icon={ReceiptIcon}
-          title="No items match your filters."
+          title={t('noMatch.title')}
         />
       ) : rows}
 

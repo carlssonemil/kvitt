@@ -8,7 +8,8 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart"
 import { formatCurrency } from "@/components/currency"
-import { getCategoryIcon, getCategoryLabel } from "@/lib/categories"
+import { getCategoryIcon, EXPENSE_CATEGORIES } from "@/lib/categories"
+import { useTranslations } from 'next-intl'
 
 // ── Payment split pie chart ───────────────────────────────────────────────────
 
@@ -96,16 +97,24 @@ interface CategorySpendingChartProps {
   currency: string
 }
 
+const CATEGORY_KEYS = new Set(['settlement', 'uncategorized', ...EXPENSE_CATEGORIES.map(c => c.key)])
+
 export function CategorySpendingChart({ data, currency }: CategorySpendingChartProps) {
+  const tcat = useTranslations('categories')
+  const getCatLabel = (cat: string | null) => {
+    const key = cat && CATEGORY_KEYS.has(cat) ? cat : 'uncategorized'
+    return tcat(key as Parameters<typeof tcat>[0])
+  }
+
   const total = data.reduce((sum, p) => sum + p.total, 0)
 
   const chartConfig = Object.fromEntries(
-    data.map((p, i) => [p.category ?? 'uncategorized', { label: getCategoryLabel(p.category), color: sliceColor(i, data.length) }])
+    data.map((p, i) => [p.category ?? 'uncategorized', { label: getCatLabel(p.category), color: sliceColor(i, data.length) }])
   ) satisfies ChartConfig
 
   const chartData = data.map((p, i) => ({
     ...p,
-    label: getCategoryLabel(p.category),
+    label: getCatLabel(p.category),
     fill: sliceColor(i, data.length),
   }))
 

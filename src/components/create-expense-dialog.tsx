@@ -3,7 +3,6 @@
 import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
 import { PlusIcon, CalendarIcon, CheckIcon } from 'lucide-react'
 import { EXPENSE_CATEGORIES } from '@/lib/categories'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
@@ -18,6 +17,7 @@ import { UserAvatar } from '@/components/user-avatar'
 import { createExpense } from '@/actions/expense-actions'
 import { formatCurrency } from '@/components/currency'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface Member {
   id: string
@@ -49,6 +49,11 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const t = useTranslations('expense')
+  const tc = useTranslations('common')
+  const tcat = useTranslations('categories')
+  const locale = useLocale()
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
@@ -156,7 +161,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
     e.preventDefault()
     const splits = buildSplits()
     if (!splits) {
-      toast.error('Select at least one member for the split')
+      toast.error(t('noMembersError'))
       return
     }
 
@@ -164,7 +169,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
     formData.set('group_id', groupId)
     formData.set('currency', selectedCurrency)
     formData.set('paid_by', paidBy)
-    formData.set('date', format(selectedDate, 'yyyy-MM-dd'))
+    formData.set('date', selectedDate.toISOString().slice(0, 10))
     formData.set('splits', JSON.stringify(splits))
     if (category) formData.set('category', category)
 
@@ -174,7 +179,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
         toast.error(result.error)
         return
       }
-      toast.success('Expense added')
+      toast.success(t('addedToast'))
       setOpen(false)
       resetForm()
       router.refresh()
@@ -186,23 +191,23 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
       <DialogTrigger asChild>
         <Button size="xs" className={triggerClassName}>
           <PlusIcon className="size-4" />
-          Add expense
+          {t('add')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add expense</DialogTitle>
-          <DialogDescription>Record a new expense for this group.</DialogDescription>
+          <DialogTitle>{t('dialogTitle')}</DialogTitle>
+          <DialogDescription>{t('dialogDesc')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="exp-title">Title</Label>
-            <Input id="exp-title" name="title" required placeholder="e.g. Dinner at Luigi's" disabled={isPending} autoFocus />
+            <Label htmlFor="exp-title">{t('titleLabel')}</Label>
+            <Input id="exp-title" name="title" required placeholder={t('titlePlaceholder')} disabled={isPending} autoFocus />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="exp-amount">Amount</Label>
+              <Label htmlFor="exp-amount">{t('amountLabel')}</Label>
               <Input
                 id="exp-amount"
                 name="amount"
@@ -217,7 +222,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Currency</Label>
+              <Label>{t('currencyLabel')}</Label>
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency} disabled={isPending}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -229,7 +234,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Paid by</Label>
+              <Label>{t('paidByLabel')}</Label>
               <Select value={paidBy} onValueChange={setPaidBy} disabled={isPending}>
                 <SelectTrigger className="w-full">
                   {(() => {
@@ -253,12 +258,12 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Date</Label>
+              <Label>{t('dateLabel')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start font-normal" disabled={isPending}>
                     <CalendarIcon className="size-4 mr-2 shrink-0" />
-                    {format(selectedDate, 'MMM d, yyyy')}
+                    {selectedDate.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -274,23 +279,23 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="exp-note">
-              Note <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('noteLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
-            <Input id="exp-note" name="note" placeholder="Any details…" disabled={isPending} />
+            <Input id="exp-note" name="note" placeholder={t('notePlaceholder')} disabled={isPending} />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label>
-              Category <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('categoryLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
             <Select value={category ?? 'none'} onValueChange={v => setCategory(v === 'none' ? null : v)} disabled={isPending}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No category</SelectItem>
-                {[...EXPENSE_CATEGORIES].sort((a, b) => a.label.localeCompare(b.label)).map(({ key, label, icon: Icon }) => (
+                <SelectItem value="none">{t('noCategory')}</SelectItem>
+                {[...EXPENSE_CATEGORIES].sort((a, b) => tcat(a.key).localeCompare(tcat(b.key), intlLocale)).map(({ key, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <Icon className="size-4" />
-                    {label}
+                    {tcat(key)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -301,13 +306,13 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <Label>Split</Label>
+              <Label>{t('splitLabel')}</Label>
               <Select value={splitType} onValueChange={v => setSplitType(v as SplitType)} disabled={isPending}>
                 <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="equal">Equal</SelectItem>
-                  <SelectItem value="exact">Exact amounts</SelectItem>
-                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="equal">{t('splitEqual')}</SelectItem>
+                  <SelectItem value="exact">{t('splitExact')}</SelectItem>
+                  <SelectItem value="percentage">{t('splitPercentage')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -369,12 +374,12 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                 <div className="flex items-center justify-end gap-2">
                   {exactEmptyIds.length > 0 && exactRemaining > 0.01 && (
                     <Button type="button" variant="outline" size="sm" onClick={distributeExactRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                      Split remaining
+                      {t('splitRemaining')}
                     </Button>
                   )}
                   {Math.abs(exactRemaining) > 0.01 && (
                     <p className="text-xs text-destructive">
-                      {formatCurrency(exactRemaining)} {selectedCurrency} left
+                      {formatCurrency(exactRemaining)} {selectedCurrency} {t('leftSuffix')}
                     </p>
                   )}
                 </div>
@@ -412,7 +417,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                 <div className="flex items-center justify-end gap-2">
                   {pctEmptyIds.length > 0 && pctRemaining > 0.01 && (
                     <Button type="button" variant="outline" size="sm" onClick={distributePctRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                      Split remaining
+                      {t('splitRemaining')}
                     </Button>
                   )}
                   {Math.abs(pctRemaining) > 0.01 && (
@@ -427,7 +432,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
 
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving…' : 'Add expense'}
+              {isPending ? t('saving') : t('submit')}
             </Button>
           </DialogFooter>
         </form>

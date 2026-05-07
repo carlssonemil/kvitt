@@ -16,10 +16,11 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 import { Currency } from '@/components/currency'
 import { UserAvatar } from '@/components/user-avatar'
-import { getCategoryLabel, getCategoryIcon, EXPENSE_CATEGORIES } from '@/lib/categories'
+import { getCategoryIcon, EXPENSE_CATEGORIES } from '@/lib/categories'
 import { deleteExpense, updateExpense } from '@/actions/expense-actions'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import type { ExpenseWithPayer } from '@/types/database'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface Member {
   id: string
@@ -34,10 +35,6 @@ interface ExpenseDetailProps {
   members: Member[]
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' })
 }
 
 function computeEqualSplits(amount: number, memberIds: string[]): Record<string, number> {
@@ -56,6 +53,11 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+  const t = useTranslations('expense')
+  const tc = useTranslations('common')
+  const tcat = useTranslations('categories')
+  const locale = useLocale()
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
   // Edit form state — initialized from expense
   const [amountStr, setAmountStr] = useState(String(expense.amount))
@@ -99,7 +101,6 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
   }
 
   function enterEdit() {
-    // Reset form state to current expense values
     setAmountStr(String(expense.amount))
     setSelectedCurrency(expense.currency)
     setPaidBy(expense.paid_by)
@@ -146,7 +147,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
     e.preventDefault()
     const splits = buildSplits()
     if (!splits) {
-      toast.error('Select at least one member for the split')
+      toast.error(t('noMembersError'))
       return
     }
 
@@ -166,7 +167,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
         toast.error(result.error)
         return
       }
-      toast.success('Expense updated')
+      toast.success(t('updatedToast'))
       setIsEditing(false)
       router.refresh()
     })
@@ -182,23 +183,25 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
         toast.error(result.error)
         return
       }
-      toast.success('Expense deleted')
+      toast.success(t('deletedToast'))
       onOpenChange(false)
       router.refresh()
     })
   }
 
   const categoryLabel = expense.category === 'settlement'
-    ? 'Settlement'
-    : getCategoryLabel(expense.category)
+    ? t('settlementLabel')
+    : expense.category
+      ? tcat(expense.category as Parameters<typeof tcat>[0])
+      : tcat('uncategorized')
 
   const CategoryIcon = getCategoryIcon(expense.category)
-  const payerName = expense.paid_by === currentUserId ? 'You' : expense.paid_by_name
+  const payerName = expense.paid_by === currentUserId ? tc('you') : expense.paid_by_name
 
   const title = (
     <div className="flex flex-col gap-0.5">
       <span className="text-xl font-semibold text-foreground">{expense.title}</span>
-      <span className="text-sm font-normal text-muted-foreground">Paid by {payerName}</span>
+      <span className="text-sm font-normal text-muted-foreground">{t('paidBySubtitle', { name: payerName })}</span>
     </div>
   )
 
@@ -206,25 +209,25 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
     const footer = (
       <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
         <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setIsEditing(false)} disabled={isPending}>
-          Cancel
+          {tc('cancel')}
         </Button>
         <Button type="submit" form="expense-edit-form" className="flex-1 sm:flex-none" disabled={isPending}>
-          {isPending ? 'Saving…' : 'Save'}
+          {isPending ? t('saving') : t('save')}
         </Button>
       </div>
     )
 
     return (
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} title="Edit expense" footer={footer}>
+      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} title={t('editTitle')} footer={footer}>
         <form id="expense-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-exp-title">Title</Label>
+            <Label htmlFor="edit-exp-title">{t('titleLabel')}</Label>
             <Input id="edit-exp-title" name="title" required defaultValue={expense.title} disabled={isPending} autoFocus />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-exp-amount">Amount</Label>
+              <Label htmlFor="edit-exp-amount">{t('amountLabel')}</Label>
               <Input
                 id="edit-exp-amount"
                 name="amount"
@@ -239,7 +242,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Currency</Label>
+              <Label>{t('currencyLabel')}</Label>
               <Select value={selectedCurrency} onValueChange={setSelectedCurrency} disabled={isPending}>
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -251,7 +254,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
 
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Paid by</Label>
+              <Label>{t('paidByLabel')}</Label>
               <Select value={paidBy} onValueChange={setPaidBy} disabled={isPending}>
                 <SelectTrigger className="w-full">
                   {(() => {
@@ -275,12 +278,12 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label>Date</Label>
+              <Label>{t('dateLabel')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="w-full justify-start font-normal" disabled={isPending}>
                     <CalendarIcon className="size-4 mr-2 shrink-0" />
-                    {format(selectedDate, 'MMM d, yyyy')}
+                    {selectedDate.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -296,23 +299,23 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
 
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="edit-exp-note">
-              Note <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('noteLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
-            <Input id="edit-exp-note" name="note" placeholder="Any details…" defaultValue={expense.note ?? ''} disabled={isPending} />
+            <Input id="edit-exp-note" name="note" placeholder={t('notePlaceholder')} defaultValue={expense.note ?? ''} disabled={isPending} />
           </div>
 
           <div className="flex flex-col gap-1.5">
             <Label>
-              Category <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('categoryLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
             <Select value={category ?? 'none'} onValueChange={v => setCategory(v === 'none' ? null : v)} disabled={isPending}>
               <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">No category</SelectItem>
-                {[...EXPENSE_CATEGORIES].sort((a, b) => a.label.localeCompare(b.label)).map(({ key, label, icon: Icon }) => (
+                <SelectItem value="none">{t('noCategory')}</SelectItem>
+                {[...EXPENSE_CATEGORIES].sort((a, b) => tcat(a.key).localeCompare(tcat(b.key), intlLocale)).map(({ key, icon: Icon }) => (
                   <SelectItem key={key} value={key}>
                     <Icon className="size-4" />
-                    {label}
+                    {tcat(key)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -323,13 +326,13 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
 
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <Label>Split</Label>
+              <Label>{t('splitLabel')}</Label>
               <Select value={splitType} onValueChange={v => setSplitType(v as SplitType)} disabled={isPending}>
                 <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="equal">Equal</SelectItem>
-                  <SelectItem value="exact">Exact amounts</SelectItem>
-                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="equal">{t('splitEqual')}</SelectItem>
+                  <SelectItem value="exact">{t('splitExact')}</SelectItem>
+                  <SelectItem value="percentage">{t('splitPercentage')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -386,7 +389,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
                   </div>
                 ))}
                 <p className={`text-xs ${Math.abs(exactRemaining) > 0.01 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  Remaining: {exactRemaining.toFixed(2)} {selectedCurrency}
+                  {t('exactRemaining', { remaining: exactRemaining.toFixed(2), currency: selectedCurrency })}
                 </p>
               </div>
             )}
@@ -413,7 +416,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
                   </div>
                 ))}
                 <p className={`text-xs ${Math.abs(pctRemaining) > 0.01 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  Remaining: {pctRemaining.toFixed(1)}%
+                  {t('pctRemaining', { remaining: pctRemaining.toFixed(1) })}
                 </p>
               </div>
             )}
@@ -427,18 +430,18 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
     <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
       <Button variant="outline" className="flex-1 sm:flex-none" onClick={enterEdit} disabled={isPending}>
         <PencilIcon className="size-4" />
-        Edit
+        {tc('edit')}
       </Button>
       <ConfirmDialog
         trigger={
           <Button variant="destructive" className="flex-1 sm:flex-none" disabled={isPending}>
             <Trash2Icon className="size-4" />
-            Delete
+            {t('deleteConfirm')}
           </Button>
         }
-        title="Delete expense?"
-        description={`This will permanently delete "${expense.title}" and all its splits.`}
-        confirmLabel="Delete"
+        title={t('deleteTitle')}
+        description={t('deleteDesc', { title: expense.title })}
+        confirmLabel={t('deleteConfirm')}
         variant="destructive"
         onConfirm={handleDelete}
         isPending={isPending}
@@ -454,44 +457,42 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
       footer={footer}
     >
       <div className="flex flex-col gap-4">
-        {/* Metadata */}
         <div className="flex flex-col gap-3 text-sm">
           <div className="flex gap-10">
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Amount</span>
+              <span className="text-xs text-muted-foreground">{t('amountLabel')}</span>
               <Currency amount={Number(expense.amount)} currency={expense.currency} className="font-semibold" />
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Category</span>
+              <span className="text-xs text-muted-foreground">{t('categoryLabel')}</span>
               <span className="flex items-center gap-1.5">
                 <CategoryIcon className="size-3.5 text-muted-foreground" />
                 {categoryLabel}
               </span>
             </div>
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Date</span>
-              <span>{formatDate(expense.date)}</span>
+              <span className="text-xs text-muted-foreground">{t('dateLabel')}</span>
+              <span>{new Date(expense.date).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })}</span>
             </div>
           </div>
           {expense.note && (
             <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">Note</span>
+              <span className="text-xs text-muted-foreground">{t('noteLabel')}</span>
               <span>{expense.note}</span>
             </div>
           )}
         </div>
 
-        {/* Splits */}
         {expense.splits.length > 0 && (
           <div>
-            <p className="text-xs text-muted-foreground mb-2">Split between</p>
+            <p className="text-xs text-muted-foreground mb-2">{t('splitBetween')}</p>
             <div className="flex flex-col gap-1.5">
               {expense.splits.map(split => (
                 <div key={split.id} className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <UserAvatar name={split.user_display_name} avatarUrl={split.user_avatar} size="xs" />
                     <span className="text-sm">
-                      {split.user_id === currentUserId ? 'You' : split.user_display_name}
+                      {split.user_id === currentUserId ? tc('you') : split.user_display_name}
                     </span>
                   </div>
                   <Currency

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { OAuthButtons } from '@/components/auth/oauth-buttons'
+import { useTranslations } from 'next-intl'
 
 type Step = 'details' | 'verify'
 
@@ -23,6 +24,7 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
   const [error, setError] = useState<string | null>(null)
   const [step, setStep] = useState<Step>('details')
   const [email, setEmail] = useState('')
+  const t = useTranslations('auth.signUp')
 
   function handleDetailsSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -74,22 +76,22 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
           className="flex flex-col gap-4"
         >
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Display name</Label>
+            <Label htmlFor="name">{t('nameLabel')}</Label>
             <Input id="name" name="name" type="text" autoComplete="name" required disabled={isPending} />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('emailLabel')}</Label>
             <Input id="email" name="email" type="email" autoComplete="email" required disabled={isPending} />
-            <p className="text-xs text-muted-foreground">We'll use this to contact you. We will not share your email with anyone else.</p>
+            <p className="text-xs text-muted-foreground">{t('emailHint')}</p>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('passwordLabel')}</Label>
             <Input id="password" name="password" type="password" autoComplete="new-password" required minLength={8} disabled={isPending} />
-            <p className="text-xs text-muted-foreground">Must be at least 8 characters.</p>
+            <p className="text-xs text-muted-foreground">{t('passwordHint')}</p>
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Creating account…' : 'Create account'}
+            {isPending ? t('submitting') : t('submit')}
           </Button>
           <OAuthButtons callbackURL={redirect || '/groups'} />
         </motion.form>
@@ -105,10 +107,10 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
           className="flex flex-col gap-4"
         >
           <p className="text-sm text-muted-foreground">
-            We sent a verification code to <span className="text-foreground font-medium">{email}</span>. Enter it below to confirm your account.
+            {t('verifyStep', { email })}
           </p>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="otp">Verification code</Label>
+            <Label htmlFor="otp">{t('codeLabel')}</Label>
             <Input
               id="otp"
               name="otp"
@@ -123,14 +125,14 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={isPending}>
-            {isPending ? 'Verifying…' : 'Verify email'}
+            {isPending ? t('verifying') : t('verify')}
           </Button>
           <button
             type="button"
             className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             onClick={() => { setStep('details'); setError(null) }}
           >
-            Back
+            {t('back')}
           </button>
         </motion.form>
       )}

@@ -14,6 +14,7 @@ import { UserAvatar } from '@/components/user-avatar'
 import { updateGroup, deleteGroup, regenerateInviteCode } from '@/actions/group-actions'
 import { removeMember } from '@/actions/member-actions'
 import { SUPPORTED_CURRENCIES, ROUTES } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
 
 interface Member {
   id: string
@@ -53,11 +54,13 @@ export function GroupSettings({
   const [isRegenerating, startRegenerating] = useTransition()
   const [inviteCode, setInviteCode] = useState(initialInviteCode)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const t = useTranslations('groupSettings')
+  const tc = useTranslations('common')
 
   function handleCopyInviteLink() {
     const url = `${window.location.origin}/invite/${inviteCode}`
     navigator.clipboard.writeText(url)
-    toast.success('Invite link copied')
+    toast.success(t('inviteLinkCopied'))
   }
 
   function handleRegenerate() {
@@ -68,7 +71,7 @@ export function GroupSettings({
         return
       }
       setInviteCode(result.inviteCode!)
-      toast.success('Invite link regenerated')
+      toast.success(t('inviteLinkRegenerated'))
     })
   }
 
@@ -104,7 +107,7 @@ export function GroupSettings({
         toast.error(result.error)
         return
       }
-      toast.success('Group deleted')
+      toast.success(t('groupDeleted'))
       router.push(ROUTES.GROUPS)
     })
   }
@@ -120,31 +123,30 @@ export function GroupSettings({
         toast.error(result.error)
         return
       }
-      toast.success('Member removed')
+      toast.success(t('memberRemoved'))
       router.refresh()
     })
   }
 
   return (
     <div className="flex flex-col gap-8">
-      {/* Edit group */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold">Group details</h2>
+          <h2 className="text-sm font-semibold">{t('groupDetails')}</h2>
           {saveStatus === 'saving' && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <LoaderCircleIcon className="size-3 animate-spin" /> Saving…
+              <LoaderCircleIcon className="size-3 animate-spin" /> {t('saving')}
             </span>
           )}
           {saveStatus === 'saved' && (
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CheckIcon className="size-3" /> Saved
+              <CheckIcon className="size-3" /> {t('saved')}
             </span>
           )}
         </div>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="gs-name">Name</Label>
+            <Label htmlFor="gs-name">{t('nameLabel')}</Label>
             <Input
               id="gs-name"
               value={name}
@@ -156,7 +158,7 @@ export function GroupSettings({
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="gs-desc">
-              Description <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('descriptionLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
             </Label>
             <Input
               id="gs-desc"
@@ -167,7 +169,7 @@ export function GroupSettings({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Currency</Label>
+            <Label>{t('currencyLabel')}</Label>
             <Select
               value={currency}
               onValueChange={val => { setCurrency(val); save({ currency: val }) }}
@@ -184,26 +186,25 @@ export function GroupSettings({
 
       <Separator />
 
-      {/* Members */}
       <section>
-        <h2 className="text-sm font-semibold mb-4">Members</h2>
+        <h2 className="text-sm font-semibold mb-4">{t('membersLabel')}</h2>
         <div className="flex items-center gap-2 mb-4 p-3 rounded-lg border bg-muted/30">
           <LinkIcon className="size-3.5 shrink-0 text-muted-foreground" />
           <span className="text-xs text-muted-foreground font-mono truncate flex-1">
             {typeof window !== 'undefined' ? `${window.location.origin}/invite/${inviteCode}` : `/invite/${inviteCode}`}
           </span>
-          <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={handleCopyInviteLink} aria-label="Copy invite link">
+          <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={handleCopyInviteLink} aria-label={t('copyInviteLink')}>
             <CopyIcon className="size-3.5" />
           </Button>
           <ConfirmDialog
             trigger={
-              <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" disabled={isRegenerating} aria-label="Regenerate invite link">
+              <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" disabled={isRegenerating} aria-label={t('regenerateLabel')}>
                 <RefreshCwIcon className={`size-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
               </Button>
             }
-            title="Regenerate invite link?"
-            description="The old link will stop working. Anyone who hasn't joined yet will need the new link."
-            confirmLabel="Regenerate"
+            title={t('regenerateTitle')}
+            description={t('regenerateDesc')}
+            confirmLabel={t('regenerateConfirm')}
             onConfirm={handleRegenerate}
             isPending={isRegenerating}
           />
@@ -230,9 +231,9 @@ export function GroupSettings({
                       <Trash2Icon className="size-3.5" />
                     </Button>
                   }
-                  title="Remove member?"
+                  title={t('removeMemberTitle')}
                   description={`Remove ${member.display_name} from this group?`}
-                  confirmLabel="Remove"
+                  confirmLabel={t('removeMemberConfirm')}
                   variant="destructive"
                   onConfirm={() => handleRemoveMember(member.id)}
                   isPending={isRemoving}
@@ -247,20 +248,20 @@ export function GroupSettings({
         <>
           <Separator />
           <section className="rounded-lg border border-destructive/40 bg-destructive/5 p-4">
-            <h2 className="text-sm font-semibold text-destructive mb-2">Danger zone</h2>
+            <h2 className="text-sm font-semibold text-destructive mb-2">{t('dangerZone')}</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Permanently delete this group and all its expenses. This cannot be undone.
+              {t('deleteGroupDesc')}
             </p>
             <ConfirmDialog
               trigger={
                 <Button variant="destructive" disabled={isPending}>
                   <Trash2Icon className="size-4" />
-                  Delete group
+                  {t('deleteGroupButton')}
                 </Button>
               }
-              title="Delete group?"
-              description="This will permanently delete the group and all its expenses and settlements. This cannot be undone."
-              confirmLabel="Delete group"
+              title={t('deleteGroupTitle')}
+              description={t('deleteGroupDesc')}
+              confirmLabel={t('deleteGroupConfirm')}
               variant="destructive"
               onConfirm={handleDelete}
               isPending={isPending}

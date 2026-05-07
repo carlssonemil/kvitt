@@ -1,0 +1,383 @@
+{
+  "common": {
+    "back": "Tillbaka",
+    "skipToMain": "Hoppa till huvudinnehåll",
+    "saving": "Sparar…",
+    "saved": "Sparat",
+    "optional": "(valfritt)",
+    "you": "dig",
+    "You": "du",
+    "selectPerson": "Välj person",
+    "cancel": "Avbryt",
+    "edit": "Redigera",
+    "remove": "Ta bort"
+  },
+  "nav": {
+    "signIn": "Logga in",
+    "signOut": "Logga ut",
+    "profile": "Profil"
+  },
+  "footer": {
+    "privacy": "Integritet",
+    "terms": "Villkor",
+    "changelog": "Ändringslogg",
+    "githubLabel": "Kvitt på GitHub"
+  },
+  "home": {
+    "tagline": "Delade utgifter på ett enkelt sätt",
+    "balancesAuto": "Saldon beräknas automatiskt",
+    "kvittTooltip": "Svenska för att vara \"kvitt\", det vill säga alla är jämna",
+    "preview": {
+      "paidBy": "betald av {name}",
+      "you": "Dig",
+      "settlement": "uppgörelse"
+    },
+    "hero": {
+      "headline": "Dela utgifter med vänner. Håll er",
+      "subheadline": "Kvitt gör det enkelt att hålla koll på delade kostnader, se vem som är skyldig vad och göra upp — allt på ett ställe.",
+      "getStarted": "Kom igång",
+      "signIn": "Logga in"
+    },
+    "howItWorks": {
+      "badge": "Så funkar det",
+      "headline": "Dela en utgift i tre steg",
+      "step1Label": "Steg 1",
+      "step1Title": "Lägg till utgifter",
+      "step1Body": "Logga en delad kostnad, välj vilka som var med och hur den ska delas.",
+      "step2Label": "Steg 2",
+      "step2Title": "Koll på saldona",
+      "step2Body": "Se vem som är skyldig vad direkt. Saldon uppdateras när utgifter läggs till.",
+      "step3Label": "Steg 3",
+      "step3Title": "Gör upp",
+      "step3Body": "Registrera en betalning för att nollställa en skuld och hålla allas saldon korrekta."
+    },
+    "cta": {
+      "headline": "Redo att dela din första utgift?",
+      "body": "Skapa en grupp, bjud in dina vänner och börja hålla koll.",
+      "button": "Kom igång"
+    }
+  },
+  "groups": {
+    "title": "Dina grupper",
+    "youAreOwed": "Du har {amount} att få",
+    "youOwe": "Du är skyldig {amount}",
+    "emptyTitle": "Inga grupper än",
+    "emptyBody": "Skapa en grupp för att börja dela utgifter."
+  },
+  "group": {
+    "back": "Tillbaka",
+    "youAreOwed": "Du har {amount} att få",
+    "youOwe": "Du är skyldig {amount}",
+    "tabs": {
+      "expenses": "Utgifter",
+      "balances": "Saldon",
+      "stats": "Statistik",
+      "settings": "Inställningar"
+    }
+  },
+  "expenseList": {
+    "noExpenses": {
+      "title": "Inga utgifter än",
+      "desc": "Lägg till den första utgiften för att komma igång."
+    },
+    "noMatch": {
+      "title": "Inga utgifter matchar dina filter."
+    },
+    "paidByLabel": "Betald av",
+    "paid": "betalade",
+    "typeAll": "Alla typer",
+    "typeExpenses": "Utgifter",
+    "typeSettlements": "Uppgörelser",
+    "allCategories": "Alla kategorier",
+    "thisWeek": "Den här veckan",
+    "lastWeek": "Förra veckan",
+    "thisMonth": "Den här månaden",
+    "lastMonth": "Förra månaden",
+    "pickDate": "Välj datum",
+    "clearFilters": "Rensa filter"
+  },
+  "balance": {
+    "owes": "är skyldig",
+    "owedToYouLabel": "Skyldig dig",
+    "settledTitle": "Alla är kvitt",
+    "settledDesc": "Inga utestående saldon i den här gruppen.",
+    "youDontOweTitle": "Du är inte skyldig någon",
+    "youDontOweDesc": "Inget du behöver göra just nu.",
+    "markSettled": "Markera som betald"
+  },
+  "expense": {
+    "add": "Lägg till utgift",
+    "titleLabel": "Titel",
+    "amountLabel": "Belopp",
+    "currencyLabel": "Valuta",
+    "paidByLabel": "Betalades av",
+    "dateLabel": "Datum",
+    "noteLabel": "Anteckning",
+    "categoryLabel": "Kategori",
+    "noCategory": "Ingen kategori",
+    "splitLabel": "Dela",
+    "splitEqual": "Lika",
+    "splitExact": "Exakta belopp",
+    "splitPercentage": "Procent",
+    "splitRemaining": "Dela resten",
+    "leftSuffix": "kvar",
+    "dialogTitle": "Lägg till utgift",
+    "dialogDesc": "Registrera en ny utgift för den här gruppen.",
+    "noMembersError": "Välj minst en medlem för delningen",
+    "saving": "Sparar…",
+    "submit": "Lägg till utgift",
+    "addedToast": "Utgift tillagd",
+    "updatedToast": "Utgift uppdaterad",
+    "deletedToast": "Utgift borttagen",
+    "settlementLabel": "Uppgörelse",
+    "you": "Du",
+    "editTitle": "Redigera utgift",
+    "save": "Spara",
+    "deleteTitle": "Ta bort utgift?",
+    "deleteDesc": "Detta tar permanent bort \"{title}\" och alla dess delningar.",
+    "deleteConfirm": "Ta bort",
+    "paidBySubtitle": "Betald av {name}",
+    "titlePlaceholder": "t.ex. Middag på Luigi's",
+    "notePlaceholder": "Detaljer…",
+    "splitBetween": "Delad mellan",
+    "exactRemaining": "Kvar: {remaining} {currency}",
+    "pctRemaining": "Kvar: {remaining}%"
+  },
+  "createGroup": {
+    "trigger": "Skapa grupp",
+    "dialogTitle": "Skapa en grupp",
+    "dialogDesc": "Ge din grupp ett namn. Du kan bjuda in andra efter att den skapats.",
+    "nameLabel": "Namn",
+    "namePlaceholder": "t.ex. Helgresa",
+    "descriptionLabel": "Beskrivning",
+    "descriptionPlaceholder": "Vad är gruppen till för?",
+    "currencyLabel": "Valuta",
+    "creating": "Skapar…",
+    "submit": "Skapa grupp",
+    "successToast": "Grupp skapad"
+  },
+  "settleUp": {
+    "trigger": "Gör upp",
+    "dialogTitle": "Registrera en uppgörelse",
+    "dialogDesc": "Registrera en betalning mellan två gruppmedlemmar.",
+    "whoPaidLabel": "Vem betalade",
+    "whoReceivedLabel": "Vem tog emot",
+    "amountLabel": "Belopp ({currency})",
+    "noteLabel": "Anteckning",
+    "submit": "Spara uppgörelse",
+    "submitting": "Sparar…",
+    "successToast": "Uppgörelse registrerad",
+    "updatedToast": "Uppgörelse uppdaterad",
+    "removedToast": "Uppgörelse borttagen",
+    "editTitle": "Redigera uppgörelse",
+    "save": "Spara",
+    "removeTitle": "Ta bort uppgörelse?",
+    "removeConfirm": "Ta bort",
+    "removeDesc": "Det här tar bort den registrerade uppgörelsen mellan {payer} och {payee}.",
+    "paidSubtitle": "{payer} betalade {payee}",
+    "notePlaceholder": "t.ex. Kontantbetalning",
+    "amountLabelPlain": "Belopp"
+  },
+  "stats": {
+    "totalExpenses": "Antal utgifter",
+    "totalAmount": "Totalt belopp",
+    "thisMonth": "{amount} {currency} den här månaden",
+    "vsLastMonth": "vs förra månaden",
+    "youPaid": "Du betalade",
+    "yourShare": "Din andel",
+    "noExpenses": "Inga utgifter än",
+    "paymentSplit": "Betalningsfördelning",
+    "spendingByCategory": "Utgifter per kategori",
+    "monthlySpending": "Månadsutgifter",
+    "topExpenses": "Största utgifter"
+  },
+  "groupSettings": {
+    "groupDetails": "Gruppdetaljer",
+    "saving": "Sparar…",
+    "saved": "Sparat",
+    "nameLabel": "Namn",
+    "descriptionLabel": "Beskrivning",
+    "currencyLabel": "Valuta",
+    "inviteLink": "Inbjudningslänk",
+    "copyInviteLink": "Kopiera inbjudningslänk",
+    "inviteLinkCopied": "Inbjudningslänk kopierad",
+    "regenerateLabel": "Återskapa inbjudningslänk",
+    "regenerateTitle": "Återskapa inbjudningslänk?",
+    "regenerateDesc": "Den gamla länken slutar fungera. Alla som inte gått med ännu behöver den nya länken.",
+    "regenerateConfirm": "Återskapa",
+    "inviteLinkRegenerated": "Inbjudningslänk återskapad",
+    "membersLabel": "Medlemmar",
+    "removeMemberTitle": "Ta bort medlem?",
+    "removeMemberConfirm": "Ta bort",
+    "memberRemoved": "Medlem borttagen",
+    "dangerZone": "Riskzon",
+    "deleteGroupTitle": "Ta bort grupp?",
+    "deleteGroupDesc": "Detta tar permanent bort gruppen och alla dess utgifter och uppgörelser. Det går inte att ångra.",
+    "deleteGroupConfirm": "Ta bort grupp",
+    "deleteGroupButton": "Ta bort grupp",
+    "groupDeleted": "Grupp borttagen"
+  },
+  "profile": {
+    "title": "Profil",
+    "displayNameLabel": "Visningsnamn",
+    "emailLabel": "E-post",
+    "saving": "Sparar…",
+    "saved": "Sparat",
+    "dangerZone": "Riskzon",
+    "dangerDesc": "Radera ditt konto permanent. Ditt namn ersätts med \"Borttagen användare\" i alla grupper, men utgiftshistoriken bevaras.",
+    "deleteAccount": "Radera konto",
+    "deleteDialogTitle": "Radera konto?",
+    "deleteDialogDesc": "Detta raderar ditt konto permanent. Dina utgifter finns kvar men ditt namn visas som 'Borttagen användare'. Det går inte att ångra.",
+    "deleteConfirmLabel": "Radera konto"
+  },
+  "categories": {
+    "settlement": "Uppgörelse",
+    "accommodation": "Boende",
+    "entertainment": "Nöje",
+    "food": "Mat & dryck",
+    "gifts": "Presenter",
+    "groceries": "Matvaror",
+    "health": "Hälsa",
+    "rent": "Hyra",
+    "shopping": "Shopping",
+    "subscriptions": "Prenumerationer",
+    "transport": "Transport",
+    "travel": "Resor",
+    "utilities": "Hemtjänster",
+    "other": "Övrigt",
+    "uncategorized": "Okategoriserad"
+  },
+  "privacy": {
+    "title": "Integritetspolicy",
+    "lastUpdated": "Senast uppdaterad: mars 2026",
+    "whatWeCollect": "Vad vi samlar in",
+    "whatWeCollectBody": "Vi samlar in ditt namn, din e-postadress och den data du skapar i appen — grupper, utgifter och uppgörelser. Vi samlar även in grundläggande användningsdata för att hålla tjänsten igång.",
+    "howWeUseIt": "Hur vi använder det",
+    "howWeUseItBody": "Din data används enbart för att tillhandahålla Kvitt-tjänsten. Vi säljer den inte, delar den inte med annonsörer eller använder den för något annat syfte än att driva appen.",
+    "dataStorage": "Datalagring",
+    "dataStorageBody": "Data lagras säkert i molnet. Vi vidtar rimliga tekniska åtgärder för att skydda den, men inget system är helt säkert.",
+    "yourRights": "Dina rättigheter",
+    "yourRightsBody": "Du kan när som helst begära radering av ditt konto och all tillhörande data genom att kontakta oss.",
+    "contact": "Kontakt",
+    "contactBody": "Frågor?"
+  },
+  "terms": {
+    "title": "Användarvillkor",
+    "lastUpdated": "Senast uppdaterad: mars 2026",
+    "acceptance": "Godkännande",
+    "acceptanceBody": "Genom att använda Kvitt godkänner du dessa villkor. Om du inte godkänner dem, använd inte tjänsten.",
+    "theService": "Tjänsten",
+    "theServiceBody": "Kvitt är ett verktyg för att spåra delade utgifter. Det tillhandahålls i befintligt skick, kostnadsfritt. Vi kan ändra eller avveckla det när som helst.",
+    "yourAccount": "Ditt konto",
+    "yourAccountBody": "Du ansvarar för att hålla ditt konto säkert och för all aktivitet under det. Använd inte Kvitt för något olagligt eller skadligt för andra.",
+    "liability": "Ansvar",
+    "liabilityBody": "Kvitt tillhandahålls utan garantier av något slag. Vi ansvarar inte för skador som uppstår från din användning av tjänsten, inklusive dataförlust eller ekonomiska tvister mellan användare.",
+    "changes": "Ändringar",
+    "changesBody": "Vi kan uppdatera dessa villkor ibland. Fortsatt användning av Kvitt efter ändringar innebär att du accepterar de nya villkoren.",
+    "contact": "Kontakt",
+    "contactBody": "Frågor?"
+  },
+  "changelog": {
+    "title": "Ändringslogg",
+    "subtitle": "Nyheter och förbättringar i Kvitt.",
+    "entries": [
+      {
+        "date": "2026-05-07",
+        "title": "Engelska & svenska: fullt i18n-stöd",
+        "description": [
+          "Appen har nu fullt stöd för internationalisering med engelska och svenska.",
+          "En språkväljare med flaggikoner visas i sidhuvudet. Dina inställningar sparas på ditt konto.",
+          "Alla UI-strängar, formuläretiketter, felmeddelanden, kategorier och sidinnehåll har översatts.",
+          "Datum- och talformatering är nu anpassade efter valt språk i hela appen."
+        ]
+      },
+      {
+        "date": "2026-04-08",
+        "title": "Hemskärmsstöd och Google-inloggningsfixar",
+        "description": [
+          "Kvitt kan nu sparas på din telefons hemskärm och öppnas som en fristående app utan webbläsarens gränssnitt.",
+          "Lade till ett webbappsmanifest, appikoner och stöd för temafärg för en app-känsla på både iOS och Android.",
+          "Fixade Google OAuth-flödet så att inloggning och registrering med Google nu skapar en session korrekt.",
+          "Nya användare som loggar in med Google registreras automatiskt — ingen separat registrering behövs."
+        ]
+      },
+      {
+        "date": "2026-04-07",
+        "title": "Buggfixar",
+        "description": [
+          "Fixade att knappen \"Lägg till utgift\" inte visades i grupper utan utgifter på mobil.",
+          "Fixade ett layoutproblem på mobil orsakat av en saknad viewport-metatagg."
+        ]
+      },
+      {
+        "date": "2026-04-02",
+        "title": "Första lanseringen",
+        "description": [
+          "Kvitt är live! Håll koll på och dela utgifter med vänner och grupper."
+        ]
+      }
+    ]
+  },
+  "auth": {
+    "tagline": "Delade utgifter gjorda enkla",
+    "oauth": {
+      "or": "eller",
+      "continueWithGoogle": "Fortsätt med Google"
+    },
+    "signIn": {
+      "pageTitle": "Välkommen tillbaka",
+      "pageSubtitle": "Logga in på ditt Kvitt-konto",
+      "emailLabel": "E-post",
+      "passwordLabel": "Lösenord",
+      "forgotPassword": "Glömt lösenordet?",
+      "submitting": "Loggar in…",
+      "submit": "Logga in",
+      "noAccount": "Har du inget konto?",
+      "signUpLink": "Registrera dig"
+    },
+    "signUp": {
+      "pageTitle": "Skapa ett konto",
+      "pageSubtitle": "Fyll i formuläret nedan för att komma igång",
+      "nameLabel": "Visningsnamn",
+      "emailLabel": "E-post",
+      "emailHint": "Vi använder den här för att kontakta dig. Vi delar aldrig din e-post med någon annan.",
+      "passwordLabel": "Lösenord",
+      "passwordHint": "Måste vara minst 8 tecken.",
+      "submitting": "Skapar konto…",
+      "submit": "Skapa konto",
+      "verifyStep": "Vi skickade en verifieringskod till {email}. Ange den nedan för att bekräfta ditt konto.",
+      "codeLabel": "Verifieringskod",
+      "verifying": "Verifierar…",
+      "verify": "Verifiera e-post",
+      "back": "Tillbaka",
+      "alreadyHaveAccount": "Har du redan ett konto?",
+      "signInLink": "Logga in",
+      "terms": "Genom att registrera dig godkänner du våra",
+      "termsLink": "Användarvillkor",
+      "and": "och",
+      "privacyLink": "Integritetspolicy",
+      "invitedBadge": "Du är inbjuden",
+      "invitedHeadlinePre": "Gå med i",
+      "invitedHeadlinePost": "på Kvitt",
+      "invitedBody": "Registrera dig för att börja hålla koll på delade utgifter med din grupp.",
+      "howItWorksBadge": "Så funkar det",
+      "howItWorksHeadline": "Håll koll på och dela utgifter med vänner",
+      "howItWorksBody": "Lägg till utgifter, se vem som är skyldig vad och gör upp på några sekunder."
+    },
+    "forgotPassword": {
+      "pageTitle": "Återställ ditt lösenord",
+      "pageSubtitle": "Vi skickar en kod till din e-post",
+      "emailLabel": "E-post",
+      "sendingCode": "Skickar kod…",
+      "sendCode": "Skicka återställningskod",
+      "resetStep": "Vi skickade en återställningskod till {email}. Ange den nedan tillsammans med ditt nya lösenord.",
+      "codeLabel": "Återställningskod",
+      "newPasswordLabel": "Nytt lösenord",
+      "passwordHint": "Måste vara minst 8 tecken.",
+      "resetting": "Återställer…",
+      "reset": "Återställ lösenord",
+      "back": "Tillbaka",
+      "backToSignIn": "Tillbaka till inloggning"
+    }
+  }
+}

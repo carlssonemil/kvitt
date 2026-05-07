@@ -17,6 +17,7 @@ import { BalanceList } from '@/components/balance-list'
 import { GroupSettings } from '@/components/group-settings'
 import { Separator } from '@/components/ui/separator'
 import { GroupStatsView } from '@/components/group-stats-view'
+import { getTranslations, getLocale } from 'next-intl/server'
 
 export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
   const { id } = await params
@@ -39,14 +40,18 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   if (!group) notFound()
 
-  const [members, expenses, settlements, balances, stats, conversions] = await Promise.all([
+  const [members, expenses, settlements, balances, stats, conversions, t, locale] = await Promise.all([
     getGroupMembers(id),
     getGroupExpenses(id),
     getGroupSettlements(id),
     computeBalances(id),
     getGroupStats(id, dbUser.id),
     getConversionsFrom(group.currency),
+    getTranslations('group'),
+    getLocale(),
   ])
+
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
   // Net balance per currency for the header summary
   const netByCurrency = new Map<string, number>()
@@ -70,7 +75,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2 text-muted-foreground">
         <Link href="/groups">
           <ArrowLeftIcon className="size-4" />
-          Back
+          {t('back')}
         </Link>
       </Button>
       <div className="mb-6">
@@ -79,7 +84,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
           <p className="text-sm text-muted-foreground mt-0.5">{group.description}</p>
         )}
         {myNetBalances.map(({ currency, amount }) => {
-          const formatted = new Intl.NumberFormat('sv-SE', {
+          const formatted = new Intl.NumberFormat(intlLocale, {
             style: 'currency',
             currency,
             maximumFractionDigits: 0,
@@ -87,12 +92,12 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
           return amount > 0 ? (
             <p key={currency} className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
               <HandCoinsIcon className="size-3.5" />
-              You are owed {formatted}
+              {t('youAreOwed', { amount: formatted })}
             </p>
           ) : (
             <p key={currency} className="flex items-center gap-1 text-sm font-medium text-orange-600 dark:text-orange-400 mt-2">
               <HandCoinsIcon className="size-3.5" />
-              You owe {formatted}
+              {t('youOwe', { amount: formatted })}
             </p>
           )
         })}

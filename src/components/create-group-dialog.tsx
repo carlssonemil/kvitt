@@ -11,12 +11,14 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createGroup } from '@/actions/group-actions'
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
 
 export function CreateGroupDialog() {
   const [open, setOpen] = useState(false)
   const [currency, setCurrency] = useState(DEFAULT_CURRENCY)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const t = useTranslations('createGroup')
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -29,7 +31,7 @@ export function CreateGroupDialog() {
         toast.error(result.error)
         return
       }
-      toast.success('Group created')
+      toast.success(t('successToast'))
       setOpen(false)
       router.refresh()
     })
@@ -47,41 +49,39 @@ export function CreateGroupDialog() {
       <DialogTrigger asChild>
         <Button size="sm">
           <Plus className="size-4" />
-          Create group
+          {t('trigger')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create a group</DialogTitle>
-          <DialogDescription>
-            Give your group a name. You can invite others after it&apos;s created.
-          </DialogDescription>
+          <DialogTitle>{t('dialogTitle')}</DialogTitle>
+          <DialogDescription>{t('dialogDesc')}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">{t('nameLabel')}</Label>
             <Input
               id="name"
               name="name"
               required
-              placeholder="e.g. Weekend trip"
+              placeholder={t('namePlaceholder')}
               autoFocus
               disabled={isPending}
             />
           </div>
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="description">
-              Description <span className="text-muted-foreground font-normal">(optional)</span>
+              {t('descriptionLabel')} <span className="text-muted-foreground font-normal">(optional)</span>
             </Label>
             <Input
               id="description"
               name="description"
-              placeholder="What's this group for?"
+              placeholder={t('descriptionPlaceholder')}
               disabled={isPending}
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Currency</Label>
+            <Label>{t('currencyLabel')}</Label>
             <Select value={currency} onValueChange={setCurrency} disabled={isPending}>
               <SelectTrigger>
                 <SelectValue />
@@ -95,7 +95,7 @@ export function CreateGroupDialog() {
           </div>
           <DialogFooter>
             <Button type="submit" disabled={isPending}>
-              {isPending ? 'Creating…' : 'Create group'}
+              {isPending ? t('creating') : t('submit')}
             </Button>
           </DialogFooter>
         </form>

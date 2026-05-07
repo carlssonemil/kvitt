@@ -8,6 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { UserAvatar } from '@/components/user-avatar'
 import { authClient } from '@/lib/auth/client'
 import { ROUTES } from '@/lib/constants'
+import { useTranslations } from 'next-intl'
 
 interface UserMenuProps {
   name: string
@@ -17,6 +18,7 @@ interface UserMenuProps {
 export function UserMenu({ name, avatarUrl }: UserMenuProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations('nav')
 
   function handleSignOut() {
     startTransition(async () => {
@@ -37,13 +39,13 @@ export function UserMenu({ name, avatarUrl }: UserMenuProps) {
         <DropdownMenuItem asChild>
           <Link href={ROUTES.PROFILE}>
             <UserIcon className="size-4" />
-            Profile
+            {t('profile')}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="text-destructive focus:text-destructive">
           <LogOutIcon className="size-4" />
-          Sign out
+          {t('signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

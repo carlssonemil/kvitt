@@ -4,20 +4,21 @@ import { cn } from '@/lib/utils'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
+import { getTranslations } from 'next-intl/server'
 
 interface GroupStatsViewProps {
   stats: GroupStats
   currency: string
 }
 
-function DeltaBadge({ thisMonth, lastMonth }: { thisMonth: number; lastMonth: number }) {
+function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMonth: number; label: string }) {
   if (thisMonth === 0 && lastMonth === 0) return null
   if (lastMonth === 0) return null
   const pct = Math.round(((thisMonth - lastMonth) / lastMonth) * 100)
   const up = pct >= 0
   return (
     <span className={cn('text-xs font-medium', up ? 'text-destructive' : 'text-green-600 dark:text-green-400')}>
-      {up ? '▲' : '▼'} {Math.abs(pct)}% vs last month
+      {up ? '▲' : '▼'} {Math.abs(pct)}% {label}
     </span>
   )
 }
@@ -31,72 +32,68 @@ function AmountValue({ amount, currency }: { amount: number; currency: string })
   )
 }
 
-export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
+export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
+  const t = await getTranslations('stats')
   const hasData = stats.expense_count > 0
   const splitTotal = stats.payment_split.reduce((sum, p) => sum + p.total, 0)
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Total expenses</span>
+          <span className="text-xs text-muted-foreground">{t('totalExpenses')}</span>
           <span className="text-xl font-bold tabular-nums">{stats.expense_count}</span>
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Total amount</span>
+          <span className="text-xs text-muted-foreground">{t('totalAmount')}</span>
           <div className="flex items-center justify-between gap-2">
             <AmountValue amount={stats.total_amount} currency={currency} />
             {hasData && stats.this_month_total > 0 && (
               <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
-                {formatCurrency(stats.this_month_total)} {currency} this month
+                {t('thisMonth', { amount: formatCurrency(stats.this_month_total), currency })}
               </span>
             )}
           </div>
-          {hasData && <DeltaBadge thisMonth={stats.this_month_total} lastMonth={stats.last_month_total} />}
+          {hasData && <DeltaBadge thisMonth={stats.this_month_total} lastMonth={stats.last_month_total} label={t('vsLastMonth')} />}
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">You paid</span>
+          <span className="text-xs text-muted-foreground">{t('youPaid')}</span>
           <AmountValue amount={stats.your_paid} currency={currency} />
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
-          <span className="text-xs text-muted-foreground">Your share</span>
+          <span className="text-xs text-muted-foreground">{t('yourShare')}</span>
           <AmountValue amount={stats.your_share} currency={currency} />
         </div>
       </div>
 
       {!hasData && (
-        <EmptyState icon={ReceiptIcon} title="No expenses yet" />
+        <EmptyState icon={ReceiptIcon} title={t('noExpenses')} />
       )}
 
-      {/* Payment split */}
       {hasData && stats.payment_split.length > 0 && splitTotal > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground font-medium">Payment split</p>
+          <p className="text-xs text-muted-foreground font-medium">{t('paymentSplit')}</p>
           <PaymentSplitChart data={stats.payment_split} currency={currency} />
         </div>
       )}
 
-      {/* Category spending */}
       {hasData && stats.category_spending.length > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground font-medium">Spending by category</p>
+          <p className="text-xs text-muted-foreground font-medium">{t('spendingByCategory')}</p>
           <CategorySpendingChart data={stats.category_spending} currency={currency} />
         </div>
       )}
 
-      {/* Monthly spending */}
       {hasData && stats.monthly_spending.length > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground font-medium">Monthly spending</p>
+          <p className="text-xs text-muted-foreground font-medium">{t('monthlySpending')}</p>
           <MonthlySpendingChart data={stats.monthly_spending} currency={currency} />
         </div>
       )}
 
-      {/* Top expenses */}
       {hasData && stats.top_expenses.length > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground font-medium">Top expenses</p>
+          <p className="text-xs text-muted-foreground font-medium">{t('topExpenses')}</p>
           <div className="flex flex-col gap-2">
             {stats.top_expenses.map((e, i) => (
               <div key={e.title} className="flex items-center gap-3 text-xs">

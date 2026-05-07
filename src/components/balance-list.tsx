@@ -6,6 +6,7 @@ import { SettleUpDialog } from '@/components/settle-up-dialog'
 import { CheckCircle2Icon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
+import { useTranslations } from 'next-intl'
 
 interface Member {
   id: string
@@ -30,6 +31,10 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
   showSettleUp: boolean
   shortenTo?: boolean
 }) {
+  const t = useTranslations('balance')
+  const tc = useTranslations('common')
+  const ts = useTranslations('settleUp')
+
   const approxAmount = balance.currency !== groupCurrency && conversions
     ? Math.round((balance.amount * (conversions[balance.currency] ?? 0)) * 100) / 100
     : null
@@ -39,8 +44,8 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
       <div className="flex flex-col gap-0.5">
         <p className="text-sm">
           <span className="font-medium">{balance.from_user_name}</span>
-          {' owes '}
-          <span className="font-medium">{shortenTo ? 'you' : balance.to_user_name}</span>
+          {` ${t('owes')} `}
+          <span className="font-medium">{shortenTo ? tc('you') : balance.to_user_name}</span>
         </p>
         <p className="text-base font-semibold">
           <Currency amount={balance.amount} currency={balance.currency} />
@@ -61,7 +66,7 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
           defaultAmount={balance.amount}
           trigger={
             <Button variant="outline" size="sm">
-              {shortenTo ? 'Mark as settled' : 'Settle up'}
+              {shortenTo ? t('markSettled') : ts('trigger')}
             </Button>
           }
         />
@@ -71,12 +76,14 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
 }
 
 export function BalanceList({ balances, members, groupId, groupCurrency, conversions, currentUserId }: BalanceListProps) {
+  const t = useTranslations('balance')
+
   if (balances.length === 0) {
     return (
       <EmptyState
         icon={CheckCircle2Icon}
-        title="All settled up"
-        description="No outstanding balances in this group."
+        title={t('settledTitle')}
+        description={t('settledDesc')}
       />
     )
   }
@@ -90,8 +97,8 @@ export function BalanceList({ balances, members, groupId, groupCurrency, convers
         {iOwe.length === 0 ? (
           <EmptyState
             icon={CheckCircle2Icon}
-            title="You don't owe anyone"
-            description="Nothing you need to do right now."
+            title={t('youDontOweTitle')}
+            description={t('youDontOweDesc')}
           />
         ) : (
           iOwe.map((balance, i) => (
@@ -102,7 +109,7 @@ export function BalanceList({ balances, members, groupId, groupCurrency, convers
 
       {owedToMe.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Owed to you</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('owedToYouLabel')}</p>
           {owedToMe.map((balance, i) => (
             <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} conversions={conversions} members={members} showSettleUp shortenTo />
           ))}

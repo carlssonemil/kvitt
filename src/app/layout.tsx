@@ -7,6 +7,7 @@ import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site-header";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -39,6 +40,7 @@ export const metadata: Metadata = {
     description: "Split bills and track shared expenses with friends and groups. Kvitt makes it easy to settle up.",
   },
   appleWebApp: {
+    capable: true,
     title: "Kvitt",
     statusBarStyle: "default",
   },
@@ -66,6 +68,7 @@ export default async function RootLayout({
             >
               Skip to main content
             </a>
+            <ServiceWorkerRegistration />
             <SiteHeader />
             <div id="main-content" className="flex flex-col flex-1">
               {children}

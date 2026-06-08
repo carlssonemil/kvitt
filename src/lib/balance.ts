@@ -1,108 +1,89 @@
 import { sql } from '@/lib/db'
 import type { Balance } from '@/types/database'
 
-function simplifyDebts(
-  net: Map<string, number>,
-  names: Map<string, string>,
-  currency: string,
-): Balance[] {
-  const creditors: { id: string; amount: number }[] = []
-  const debtors: { id: string; amount: number }[] = []
-
-  for (const [id, amount] of net.entries()) {
-    const rounded = Math.round(amount * 100) / 100
-    if (rounded > 0.005) creditors.push({ id, amount: rounded })
-    else if (rounded < -0.005) debtors.push({ id, amount: -rounded })
-  }
-
-  creditors.sort((a, b) => b.amount - a.amount)
-  debtors.sort((a, b) => b.amount - a.amount)
-
-  const balances: Balance[] = []
-
-  while (creditors.length > 0 && debtors.length > 0) {
-    const creditor = creditors[0]!
-    const debtor = debtors[0]!
-    const transfer = Math.round(Math.min(creditor.amount, debtor.amount) * 100) / 100
-
-    balances.push({
-      from_user_id: debtor.id,
-      from_user_name: names.get(debtor.id) ?? debtor.id,
-      to_user_id: creditor.id,
-      to_user_name: names.get(creditor.id) ?? creditor.id,
-      amount: transfer,
-      currency,
-    })
-
-    creditor.amount = Math.round((creditor.amount - transfer) * 100) / 100
-    debtor.amount = Math.round((debtor.amount - transfer) * 100) / 100
-
-    if (creditor.amount < 0.005) creditors.shift()
-    if (debtor.amount < 0.005) debtors.shift()
-  }
-
-  return balances
-}
-
 export async function computeBalances(groupId: string): Promise<Balance[]> {
-  const [expenses, splits, settlements] = await Promise.all([
+  const [debtRows, settlements] = await Promise.all([
     sql`
-      SELECT e.paid_by, e.amount::float AS amount, e.currency, u.display_name AS paid_by_name
-      FROM expenses e
-      JOIN users u ON u.id = e.paid_by
-      WHERE e.group_id = ${groupId}
-    `,
-    sql`
-      SELECT es.user_id, es.amount::float AS amount, e.currency, u.display_name AS user_name
+      SELECT
+        es.user_id        AS from_user_id,
+        u_from.display_name AS from_user_name,
+        e.paid_by         AS to_user_id,
+        u_to.display_name AS to_user_name,
+        es.amount::float  AS amount,
+        e.currency,
+        e.title           AS expense_title
       FROM expense_splits es
-      JOIN expenses e ON e.id = es.expense_id
-      JOIN users u ON u.id = es.user_id
+      JOIN expenses e    ON e.id  = es.expense_id
+      JOIN users u_from  ON u_from.id = es.user_id
+      JOIN users u_to    ON u_to.id   = e.paid_by
       WHERE e.group_id = ${groupId}
+        AND es.user_id != e.paid_by
     `,
     sql`
-      SELECT s.paid_by, s.paid_to, s.amount::float AS amount, s.currency
-      FROM settlements s
-      WHERE s.group_id = ${groupId}
+      SELECT paid_by, paid_to, amount::float AS amount, currency
+      FROM settlements
+      WHERE group_id = ${groupId}
     `,
   ]) as [
-    { paid_by: string; amount: number; currency: string; paid_by_name: string }[],
-    { user_id: string; amount: number; currency: string; user_name: string }[],
+    { from_user_id: string; from_user_name: string; to_user_id: string; to_user_name: string; amount: number; currency: string; expense_title: string }[],
     { paid_by: string; paid_to: string; amount: number; currency: string }[],
   ]
 
-  // net per currency per user: positive = owed to them, negative = they owe
-  const netByCurrency = new Map<string, Map<string, number>>()
-  const names = new Map<string, string>()
+  // Group direct debts by (from_user_id, to_user_id, currency)
+  type Group = {
+    from_user_id: string
+    from_user_name: string
+    to_user_id: string
+    to_user_name: string
+    currency: string
+    total: number
+    breakdown: { expense_title: string; amount: number }[]
+  }
+  const groups = new Map<string, Group>()
 
-  function getNet(currency: string): Map<string, number> {
-    let m = netByCurrency.get(currency)
-    if (!m) { m = new Map(); netByCurrency.set(currency, m) }
-    return m
+  for (const row of debtRows) {
+    const key = `${row.from_user_id}|${row.to_user_id}|${row.currency}`
+    const g = groups.get(key)
+    if (g) {
+      g.total = Math.round((g.total + row.amount) * 100) / 100
+      g.breakdown.push({ expense_title: row.expense_title, amount: row.amount })
+    } else {
+      groups.set(key, {
+        from_user_id: row.from_user_id,
+        from_user_name: row.from_user_name,
+        to_user_id: row.to_user_id,
+        to_user_name: row.to_user_name,
+        currency: row.currency,
+        total: row.amount,
+        breakdown: [{ expense_title: row.expense_title, amount: row.amount }],
+      })
+    }
   }
 
-  for (const e of expenses) {
-    const m = getNet(e.currency)
-    m.set(e.paid_by, (m.get(e.paid_by) ?? 0) + e.amount)
-    names.set(e.paid_by, e.paid_by_name)
-  }
-
-  for (const s of splits) {
-    const m = getNet(s.currency)
-    m.set(s.user_id, (m.get(s.user_id) ?? 0) - s.amount)
-    names.set(s.user_id, s.user_name)
-  }
-
+  // Apply settlements: paid_by paid paid_to → reduces paid_by's debt to paid_to
   for (const s of settlements) {
-    const m = getNet(s.currency)
-    // Only adjust balances for users with expense-based history; settlements
-    // between users outside expenses/splits must not create phantom debtors.
-    if (m.has(s.paid_by)) m.set(s.paid_by, m.get(s.paid_by)! + s.amount)
-    if (m.has(s.paid_to)) m.set(s.paid_to, m.get(s.paid_to)! - s.amount)
+    const key = `${s.paid_by}|${s.paid_to}|${s.currency}`
+    const g = groups.get(key)
+    if (g) {
+      g.total = Math.round((g.total - s.amount) * 100) / 100
+    }
   }
 
   const balances: Balance[] = []
-  for (const [currency, net] of netByCurrency.entries()) {
-    balances.push(...simplifyDebts(net, names, currency))
+  for (const g of groups.values()) {
+    const amount = Math.round(g.total * 100) / 100
+    if (amount > 0.005) {
+      balances.push({
+        from_user_id: g.from_user_id,
+        from_user_name: g.from_user_name,
+        to_user_id: g.to_user_id,
+        to_user_name: g.to_user_name,
+        amount,
+        currency: g.currency,
+        breakdown: g.breakdown,
+      })
+    }
   }
+
   return balances
 }

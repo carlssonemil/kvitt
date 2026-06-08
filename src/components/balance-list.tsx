@@ -35,8 +35,9 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
   const tc = useTranslations('common')
   const ts = useTranslations('settleUp')
 
-  const approxAmount = balance.currency !== groupCurrency && conversions
-    ? Math.round((balance.amount * (conversions[balance.currency] ?? 0)) * 100) / 100
+  const convRate = conversions?.[balance.currency]
+  const approxAmount = balance.currency !== groupCurrency && convRate
+    ? Math.round((balance.amount / convRate) * 100) / 100
     : null
 
   return (

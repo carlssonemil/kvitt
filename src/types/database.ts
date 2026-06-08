@@ -83,7 +83,7 @@ export interface GroupMemberWithUser extends DbGroupMember {
   avatar_url: string | null
 }
 
-// Who owes who within a group (after simplification)
+// Who owes who within a group (direct per-expense, grouped by debtor→creditor pair)
 export interface Balance {
   from_user_id: string
   from_user_name: string
@@ -91,6 +91,7 @@ export interface Balance {
   to_user_name: string
   amount: number
   currency: string
+  breakdown: { expense_title: string; amount: number }[]
 }
 
 export interface GroupStats {

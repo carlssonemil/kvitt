@@ -40,7 +40,7 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
     : null
 
   return (
-    <div className={`flex items-center justify-between rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
+    <div className={`flex items-start justify-between rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
       <div className="flex flex-col gap-0.5">
         <p className="text-sm">
           <span className="font-medium">{balance.from_user_name}</span>
@@ -55,6 +55,20 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
             </span>
           )}
         </p>
+        {balance.breakdown.length > 0 && (
+          <div className="flex flex-col gap-0.5 mt-1">
+            {balance.breakdown.map((item, i) => (
+              <p key={i} className="text-xs text-muted-foreground">
+                {item.expense_title}
+                {balance.breakdown.length > 1 && (
+                  <span className="ml-1 tabular-nums">
+                    · <Currency amount={item.amount} currency={balance.currency} className="inline" />
+                  </span>
+                )}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
       {showSettleUp && (
         <SettleUpDialog

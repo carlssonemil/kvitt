@@ -43,8 +43,8 @@ export default async function GroupsPage() {
         (
           COALESCE((SELECT SUM(e.amount)::float FROM expenses e WHERE e.group_id = g.id AND e.paid_by = ${dbUser.id} AND e.currency = g.currency), 0)
           - COALESCE((SELECT SUM(es.amount)::float FROM expense_splits es JOIN expenses e ON e.id = es.expense_id WHERE e.group_id = g.id AND es.user_id = ${dbUser.id} AND e.currency = g.currency), 0)
-          + COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_to = ${dbUser.id} AND s.currency = g.currency), 0)
-          - COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_by = ${dbUser.id} AND s.currency = g.currency), 0)
+          - COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_to = ${dbUser.id} AND s.currency = g.currency), 0)
+          + COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_by = ${dbUser.id} AND s.currency = g.currency), 0)
         ) AS your_balance
       FROM groups g
       JOIN group_members gm ON gm.group_id = g.id

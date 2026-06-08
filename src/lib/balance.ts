@@ -94,8 +94,10 @@ export async function computeBalances(groupId: string): Promise<Balance[]> {
 
   for (const s of settlements) {
     const m = getNet(s.currency)
-    m.set(s.paid_by, (m.get(s.paid_by) ?? 0) + s.amount)
-    m.set(s.paid_to, (m.get(s.paid_to) ?? 0) - s.amount)
+    // Only adjust balances for users with expense-based history; settlements
+    // between users outside expenses/splits must not create phantom debtors.
+    if (m.has(s.paid_by)) m.set(s.paid_by, m.get(s.paid_by)! + s.amount)
+    if (m.has(s.paid_to)) m.set(s.paid_to, m.get(s.paid_to)! - s.amount)
   }
 
   const balances: Balance[] = []

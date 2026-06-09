@@ -45,7 +45,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
     getGroupExpenses(id),
     getGroupSettlements(id),
     computeBalances(id),
-    getGroupStats(id, dbUser.id),
+    getGroupStats(id, dbUser.id, group.currency),
     getConversionsFrom(group.currency),
     getTranslations('group'),
     getLocale(),

@@ -1,5 +1,6 @@
 // Fetches exchange rates from frankfurter.app (free, no API key needed).
-// Rates are cached by Next.js fetch for 1 hour.
+// Live rates are cached by Next.js fetch for 1 hour.
+// Historical rates are cached indefinitely (they never change).
 
 async function getRates(): Promise<Record<string, number> | null> {
   try {
@@ -9,6 +10,19 @@ async function getRates(): Promise<Record<string, number> | null> {
     if (!res.ok) return null
     const data = await res.json() as { rates: Record<string, number> }
     // Include EUR itself (rate = 1 relative to EUR)
+    return { ...data.rates, EUR: 1 }
+  } catch {
+    return null
+  }
+}
+
+async function getRatesForDate(date: string): Promise<Record<string, number> | null> {
+  try {
+    const res = await fetch(`https://api.frankfurter.app/${date}?from=EUR`, {
+      cache: 'force-cache',
+    })
+    if (!res.ok) return null
+    const data = await res.json() as { rates: Record<string, number> }
     return { ...data.rates, EUR: 1 }
   } catch {
     return null
@@ -50,4 +64,30 @@ export async function getConversionsFrom(
     result[currency] = rate / baseRate
   }
   return result
+}
+
+/**
+ * Fetches historical conversion rates for multiple dates in parallel.
+ * Returns a Map from date string (YYYY-MM-DD) to conversion ratios relative to baseCurrency.
+ * Historical rates are cached indefinitely since they never change.
+ */
+export async function getMultiDateConversions(
+  baseCurrency: string,
+  dates: string[],
+): Promise<Map<string, Record<string, number>>> {
+  const uniqueDates = [...new Set(dates)]
+  const entries = await Promise.all(
+    uniqueDates.map(async (date) => {
+      const rates = await getRatesForDate(date)
+      if (!rates) return null
+      const baseRate = rates[baseCurrency]
+      if (!baseRate) return null
+      const conversions: Record<string, number> = {}
+      for (const [currency, rate] of Object.entries(rates)) {
+        conversions[currency] = rate / baseRate
+      }
+      return [date, conversions] as const
+    })
+  )
+  return new Map(entries.filter((e): e is [string, Record<string, number>] => e !== null))
 }

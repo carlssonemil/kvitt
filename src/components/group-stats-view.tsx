@@ -48,7 +48,7 @@ export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
           <span className="text-xs text-muted-foreground">{t('totalAmount')}</span>
           <div className="flex items-center justify-between gap-2">
             <AmountValue amount={stats.total_amount} currency={currency} />
-            {hasData && stats.this_month_total > 0 && (
+            {hasData && stats.this_month_total > 0 && stats.monthly_spending.length > 1 && (
               <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
                 {t('thisMonth', { amount: formatCurrency(stats.this_month_total), currency })}
               </span>
@@ -84,7 +84,7 @@ export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
         </div>
       )}
 
-      {hasData && stats.monthly_spending.length > 0 && (
+      {hasData && stats.monthly_spending.length > 1 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
           <p className="text-xs text-muted-foreground font-medium">{t('monthlySpending')}</p>
           <MonthlySpendingChart data={stats.monthly_spending} currency={currency} />

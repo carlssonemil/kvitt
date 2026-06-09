@@ -1,5 +1,5 @@
 import { sql } from '@/lib/db'
-import { getConversionsFrom } from '@/lib/exchange-rates'
+import { getMultiDateConversions } from '@/lib/exchange-rates'
 import type { ExpenseWithPayer, GroupMemberWithUser, GroupStats } from '@/types/database'
 
 export interface SettlementWithUsers {
@@ -83,7 +83,6 @@ export async function getGroupSettlements(groupId: string): Promise<SettlementWi
 
 export async function getGroupStats(groupId: string, userId: string, groupCurrency: string): Promise<GroupStats> {
   const [
-    conversions,
     totalsRows,
     yourPaidRows,
     yourShareRows,
@@ -92,110 +91,144 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
     topRows,
     categoryRows,
   ] = await Promise.all([
-    getConversionsFrom(groupCurrency),
-
     sql`
       SELECT
         currency,
-        COUNT(*)::int AS expense_count,
-        COALESCE(SUM(amount), 0)::float AS total_amount,
-        COALESCE(SUM(amount) FILTER (
-          WHERE date >= date_trunc('month', CURRENT_DATE)
-        ), 0)::float AS this_month_total,
-        COALESCE(SUM(amount) FILTER (
-          WHERE date >= date_trunc('month', CURRENT_DATE) - interval '1 month'
-            AND date < date_trunc('month', CURRENT_DATE)
-        ), 0)::float AS last_month_total
+        date::text AS date,
+        SUM(amount)::float AS daily_amount,
+        COUNT(*)::int AS daily_count
       FROM expenses
       WHERE group_id = ${groupId}
-      GROUP BY currency
-    ` as unknown as Promise<{ currency: string; expense_count: number; total_amount: number; this_month_total: number; last_month_total: number }[]>,
+      GROUP BY currency, date
+    ` as unknown as Promise<{ currency: string; date: string; daily_amount: number; daily_count: number }[]>,
 
     sql`
-      SELECT currency, COALESCE(SUM(amount), 0)::float AS your_paid
+      SELECT currency, date::text AS date, SUM(amount)::float AS daily_paid
       FROM expenses
       WHERE group_id = ${groupId} AND paid_by = ${userId}
-      GROUP BY currency
-    ` as unknown as Promise<{ currency: string; your_paid: number }[]>,
+      GROUP BY currency, date
+    ` as unknown as Promise<{ currency: string; date: string; daily_paid: number }[]>,
 
     sql`
-      SELECT e.currency, COALESCE(SUM(es.amount), 0)::float AS your_share
+      SELECT e.currency, e.date::text AS date, SUM(es.amount)::float AS daily_share
       FROM expense_splits es
       JOIN expenses e ON e.id = es.expense_id
       WHERE e.group_id = ${groupId} AND es.user_id = ${userId}
-      GROUP BY e.currency
-    ` as unknown as Promise<{ currency: string; your_share: number }[]>,
+      GROUP BY e.currency, e.date
+    ` as unknown as Promise<{ currency: string; date: string; daily_share: number }[]>,
 
     sql`
       SELECT
         to_char(date_trunc('month', date), 'Mon YYYY') AS month,
         currency,
-        SUM(amount)::float AS total
+        date::text AS date,
+        SUM(amount)::float AS daily_total
       FROM expenses
       WHERE group_id = ${groupId}
         AND date >= date_trunc('month', CURRENT_DATE) - interval '5 months'
-      GROUP BY date_trunc('month', date), currency
+      GROUP BY date_trunc('month', date), currency, date
       ORDER BY date_trunc('month', date)
-    ` as unknown as Promise<{ month: string; currency: string; total: number }[]>,
+    ` as unknown as Promise<{ month: string; currency: string; date: string; daily_total: number }[]>,
 
     sql`
       SELECT
         e.paid_by AS user_id,
         u.display_name AS name,
         e.currency,
-        SUM(e.amount)::float AS total
+        e.date::text AS date,
+        SUM(e.amount)::float AS daily_total
       FROM expenses e
       JOIN users u ON u.id = e.paid_by
       WHERE e.group_id = ${groupId}
-      GROUP BY e.paid_by, u.display_name, e.currency
-    ` as unknown as Promise<{ user_id: string; name: string; currency: string; total: number }[]>,
+      GROUP BY e.paid_by, u.display_name, e.currency, e.date
+    ` as unknown as Promise<{ user_id: string; name: string; currency: string; date: string; daily_total: number }[]>,
 
     sql`
       SELECT
         title,
         currency,
-        SUM(amount)::float AS total,
-        COUNT(*)::int AS count
+        date::text AS date,
+        SUM(amount)::float AS daily_total,
+        COUNT(*)::int AS daily_count
       FROM expenses
       WHERE group_id = ${groupId}
-      GROUP BY title, currency
-    ` as unknown as Promise<{ title: string; currency: string; total: number; count: number }[]>,
+      GROUP BY title, currency, date
+    ` as unknown as Promise<{ title: string; currency: string; date: string; daily_total: number; daily_count: number }[]>,
 
     sql`
       SELECT
         category,
         currency,
-        SUM(amount)::float AS total
+        date::text AS date,
+        SUM(amount)::float AS daily_total
       FROM expenses
       WHERE group_id = ${groupId}
-      GROUP BY category, currency
-    ` as unknown as Promise<{ category: string | null; currency: string; total: number }[]>,
+      GROUP BY category, currency, date
+    ` as unknown as Promise<{ category: string | null; currency: string; date: string; daily_total: number }[]>,
   ])
 
-  // Converts an amount from fromCurrency to groupCurrency.
-  // Falls back to the raw amount if rates are unavailable or the currency is unknown.
-  function conv(amount: number, fromCurrency: string): number {
-    if (!conversions || fromCurrency === groupCurrency) return amount
-    const rate = conversions[fromCurrency]
+  // Collect all unique expense dates across all queries, then fetch historical rates for each.
+  const allDates = new Set<string>()
+  for (const r of totalsRows) allDates.add(r.date)
+  for (const r of yourPaidRows) allDates.add(r.date)
+  for (const r of yourShareRows) allDates.add(r.date)
+  for (const r of monthlyRows) allDates.add(r.date)
+  for (const r of splitRows) allDates.add(r.date)
+  for (const r of topRows) allDates.add(r.date)
+  for (const r of categoryRows) allDates.add(r.date)
+
+  const conversionsByDate = await getMultiDateConversions(groupCurrency, [...allDates])
+
+  // Converts an amount from fromCurrency to groupCurrency using the rate on the expense date.
+  // Falls back to the raw amount if rates are unavailable for that date.
+  function conv(amount: number, fromCurrency: string, date: string): number {
+    if (fromCurrency === groupCurrency) return amount
+    const dateConversions = conversionsByDate.get(date)
+    if (!dateConversions) return amount
+    const rate = dateConversions[fromCurrency]
     if (!rate) return amount
     return amount / rate
   }
 
   const round = (n: number) => Math.round(n * 100) / 100
 
-  const expense_count = totalsRows.reduce((sum, r) => sum + r.expense_count, 0)
-  const total_amount = round(totalsRows.reduce((sum, r) => sum + conv(r.total_amount, r.currency), 0))
-  const this_month_total = round(totalsRows.reduce((sum, r) => sum + conv(r.this_month_total, r.currency), 0))
-  const last_month_total = round(totalsRows.reduce((sum, r) => sum + conv(r.last_month_total, r.currency), 0))
-  const your_paid = round(yourPaidRows.reduce((sum, r) => sum + conv(r.your_paid, r.currency), 0))
-  const your_share = round(yourShareRows.reduce((sum, r) => sum + conv(r.your_share, r.currency), 0))
+  // Date range strings for this-month / last-month filtering
+  const now = new Date()
+  const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonthStart = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}-01`
+
+  let expense_count = 0
+  let total_amount = 0
+  let this_month_total = 0
+  let last_month_total = 0
+  for (const r of totalsRows) {
+    const converted = conv(r.daily_amount, r.currency, r.date)
+    expense_count += r.daily_count
+    total_amount += converted
+    if (r.date >= thisMonthStart) {
+      this_month_total += converted
+    } else if (r.date >= lastMonthStart) {
+      last_month_total += converted
+    }
+  }
+
+  let your_paid = 0
+  for (const r of yourPaidRows) {
+    your_paid += conv(r.daily_paid, r.currency, r.date)
+  }
+
+  let your_share = 0
+  for (const r of yourShareRows) {
+    your_share += conv(r.daily_share, r.currency, r.date)
+  }
 
   // Monthly spending: preserve SQL month order, sum across currencies per month
   const monthlyMap = new Map<string, number>()
   const monthOrder: string[] = []
   for (const r of monthlyRows) {
     if (!monthlyMap.has(r.month)) monthOrder.push(r.month)
-    monthlyMap.set(r.month, (monthlyMap.get(r.month) ?? 0) + conv(r.total, r.currency))
+    monthlyMap.set(r.month, (monthlyMap.get(r.month) ?? 0) + conv(r.daily_total, r.currency, r.date))
   }
   const monthly_spending = monthOrder.map(month => ({
     month,
@@ -205,7 +238,7 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
   // Payment split: sum per user across currencies
   const paymentMap = new Map<string, { user_id: string; name: string; total: number }>()
   for (const r of splitRows) {
-    const converted = conv(r.total, r.currency)
+    const converted = conv(r.daily_total, r.currency, r.date)
     const existing = paymentMap.get(r.user_id)
     if (existing) {
       existing.total = round(existing.total + converted)
@@ -218,13 +251,13 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
   // Top expenses: sum per title across currencies, take top 5
   const topMap = new Map<string, { title: string; total: number; count: number }>()
   for (const r of topRows) {
-    const converted = conv(r.total, r.currency)
+    const converted = conv(r.daily_total, r.currency, r.date)
     const existing = topMap.get(r.title)
     if (existing) {
       existing.total = round(existing.total + converted)
-      existing.count += r.count
+      existing.count += r.daily_count
     } else {
-      topMap.set(r.title, { title: r.title, total: round(converted), count: r.count })
+      topMap.set(r.title, { title: r.title, total: round(converted), count: r.daily_count })
     }
   }
   const top_expenses = [...topMap.values()].sort((a, b) => b.total - a.total).slice(0, 5)
@@ -232,20 +265,20 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
   // Category spending: sum per category across currencies
   const categoryMap = new Map<string | null, number>()
   for (const r of categoryRows) {
-    categoryMap.set(r.category, (categoryMap.get(r.category) ?? 0) + conv(r.total, r.currency))
+    categoryMap.set(r.category, (categoryMap.get(r.category) ?? 0) + conv(r.daily_total, r.currency, r.date))
   }
   const category_spending = [...categoryMap.entries()]
     .map(([category, total]) => ({ category, total: round(total) }))
     .sort((a, b) => b.total - a.total)
 
   return {
-    total_expenses: total_amount,
-    total_amount,
+    total_expenses: round(total_amount),
+    total_amount: round(total_amount),
     expense_count,
-    your_paid,
-    your_share,
-    this_month_total,
-    last_month_total,
+    your_paid: round(your_paid),
+    your_share: round(your_share),
+    this_month_total: round(this_month_total),
+    last_month_total: round(last_month_total),
     monthly_spending,
     payment_split,
     top_expenses,

@@ -4,7 +4,6 @@ import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
 import { getGroupExpenses, getGroupMembers, getGroupSettlements, getGroupStats } from '@/lib/queries'
 import { computeBalances } from '@/lib/balance'
-import { getConversionsFrom } from '@/lib/exchange-rates'
 import type { DbGroup } from '@/types/database'
 import Link from 'next/link'
 import { ArrowLeftIcon, HandCoinsIcon } from 'lucide-react'
@@ -40,13 +39,12 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   if (!group) notFound()
 
-  const [members, expenses, settlements, balances, stats, conversions, t, locale] = await Promise.all([
+  const [members, expenses, settlements, balances, stats, t, locale] = await Promise.all([
     getGroupMembers(id),
     getGroupExpenses(id),
     getGroupSettlements(id),
-    computeBalances(id),
+    computeBalances(id, group.currency),
     getGroupStats(id, dbUser.id, group.currency),
-    getConversionsFrom(group.currency),
     getTranslations('group'),
     getLocale(),
   ])
@@ -133,7 +131,6 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
             members={memberList}
             groupId={id}
             groupCurrency={group.currency}
-            conversions={conversions ?? undefined}
             currentUserId={dbUser.id}
           />
         </TabsContent>

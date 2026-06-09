@@ -38,6 +38,7 @@ export async function computeBalances(groupId: string): Promise<Balance[]> {
     currency: string
     total: number
     breakdown: { expense_title: string; amount: number }[]
+    offset?: number
   }
   const groups = new Map<string, Group>()
 
@@ -77,9 +78,11 @@ export async function computeBalances(groupId: string): Promise<Balance[]> {
     const reverse = groups.get(reverseKey)
     if (!reverse) continue
     if (g.total >= reverse.total) {
+      g.offset = reverse.total
       g.total = Math.round((g.total - reverse.total) * 100) / 100
       groups.delete(reverseKey)
     } else {
+      reverse.offset = g.total
       reverse.total = Math.round((reverse.total - g.total) * 100) / 100
       groups.delete(key)
     }
@@ -97,6 +100,7 @@ export async function computeBalances(groupId: string): Promise<Balance[]> {
         amount,
         currency: g.currency,
         breakdown: g.breakdown,
+        offset: g.offset,
       })
     }
   }

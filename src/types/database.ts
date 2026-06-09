@@ -92,6 +92,7 @@ export interface Balance {
   amount: number
   currency: string
   breakdown: { expense_title: string; amount: number }[]
+  offset?: number
 }
 
 export interface GroupStats {

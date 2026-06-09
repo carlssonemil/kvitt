@@ -56,18 +56,26 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
             </span>
           )}
         </p>
-        {balance.breakdown.length > 0 && (
+        {(balance.breakdown.length > 0 || balance.offset) && (
           <div className="flex flex-col gap-0.5 mt-1">
             {balance.breakdown.map((item, i) => (
               <p key={i} className="text-xs text-muted-foreground">
                 {item.expense_title}
-                {balance.breakdown.length > 1 && (
+                {(balance.breakdown.length > 1 || balance.offset) && (
                   <span className="ml-1 tabular-nums">
                     · <Currency amount={item.amount} currency={balance.currency} className="inline" />
                   </span>
                 )}
               </p>
             ))}
+            {balance.offset && (
+              <p className="text-xs text-muted-foreground">
+                {t('offsetLabel', { name: balance.to_user_name })}
+                <span className="ml-1 tabular-nums">
+                  · −<Currency amount={balance.offset} currency={balance.currency} className="inline" />
+                </span>
+              </p>
+            )}
           </div>
         )}
       </div>

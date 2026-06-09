@@ -93,6 +93,7 @@ export interface Balance {
   currency: string
   breakdown: { expense_title: string; amount: number }[]
   offset?: number
+  approxAmount: number | null  // amount converted to group currency at historical rates; null if same currency or rates unavailable
 }
 
 export interface GroupStats {

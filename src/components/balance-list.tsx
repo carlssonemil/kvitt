@@ -18,15 +18,13 @@ interface BalanceListProps {
   members: Member[]
   groupId: string
   groupCurrency: string
-  conversions?: Record<string, number>
   currentUserId: string
 }
 
-function BalanceRow({ balance, groupId, groupCurrency, conversions, members, showSettleUp, shortenTo }: {
+function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, shortenTo }: {
   balance: Balance
   groupId: string
   groupCurrency: string
-  conversions?: Record<string, number>
   members: Member[]
   showSettleUp: boolean
   shortenTo?: boolean
@@ -35,10 +33,7 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
   const tc = useTranslations('common')
   const ts = useTranslations('settleUp')
 
-  const convRate = conversions?.[balance.currency]
-  const approxAmount = balance.currency !== groupCurrency && convRate
-    ? Math.round((balance.amount / convRate) * 100) / 100
-    : null
+  const approxAmount = balance.approxAmount
 
   return (
     <div className={`flex items-start justify-between rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
@@ -98,7 +93,7 @@ function BalanceRow({ balance, groupId, groupCurrency, conversions, members, sho
   )
 }
 
-export function BalanceList({ balances, members, groupId, groupCurrency, conversions, currentUserId }: BalanceListProps) {
+export function BalanceList({ balances, members, groupId, groupCurrency, currentUserId }: BalanceListProps) {
   const t = useTranslations('balance')
 
   if (balances.length === 0) {
@@ -125,7 +120,7 @@ export function BalanceList({ balances, members, groupId, groupCurrency, convers
           />
         ) : (
           iOwe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} conversions={conversions} members={members} showSettleUp />
+            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp />
           ))
         )}
       </div>
@@ -134,7 +129,7 @@ export function BalanceList({ balances, members, groupId, groupCurrency, convers
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('owedToYouLabel')}</p>
           {owedToMe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} conversions={conversions} members={members} showSettleUp shortenTo />
+            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp shortenTo />
           ))}
         </div>
       )}

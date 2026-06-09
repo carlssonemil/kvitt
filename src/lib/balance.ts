@@ -69,6 +69,22 @@ export async function computeBalances(groupId: string): Promise<Balance[]> {
     }
   }
 
+  // Net out mutual debts: if A owes B and B owes A, reduce to a single net debt
+  for (const key of [...groups.keys()]) {
+    const g = groups.get(key)
+    if (!g) continue
+    const reverseKey = `${g.to_user_id}|${g.from_user_id}|${g.currency}`
+    const reverse = groups.get(reverseKey)
+    if (!reverse) continue
+    if (g.total >= reverse.total) {
+      g.total = Math.round((g.total - reverse.total) * 100) / 100
+      groups.delete(reverseKey)
+    } else {
+      reverse.total = Math.round((reverse.total - g.total) * 100) / 100
+      groups.delete(key)
+    }
+  }
+
   const balances: Balance[] = []
   for (const g of groups.values()) {
     const amount = Math.round(g.total * 100) / 100

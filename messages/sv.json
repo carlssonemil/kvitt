@@ -103,7 +103,8 @@
     "settledDesc": "Inga utestående saldon i den här gruppen.",
     "youDontOweTitle": "Du är inte skyldig någon",
     "youDontOweDesc": "Inget du behöver göra just nu.",
-    "markSettled": "Markera som betald"
+    "markSettled": "Markera som betald",
+    "offsetLabel": "Kvittning ({name} är skyldig tillbaka)"
   },
   "expense": {
     "add": "Lägg till utgift",

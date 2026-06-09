@@ -103,7 +103,8 @@
     "settledDesc": "No outstanding balances in this group.",
     "youDontOweTitle": "You don't owe anyone",
     "youDontOweDesc": "Nothing you need to do right now.",
-    "markSettled": "Mark as settled"
+    "markSettled": "Mark as settled",
+    "offsetLabel": "Offset ({name} owes back)"
   },
   "expense": {
     "add": "Add expense",

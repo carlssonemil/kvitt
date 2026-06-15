@@ -52,7 +52,7 @@ export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
                 <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs flex flex-col gap-1">
                   <p className="font-medium">{name}</p>
                   <p className="text-muted-foreground">
-                    {formatCurrency(value)} {currency}{' '}
+                    {formatCurrency(Math.round(value))} {currency}{' '}
                     <span className="text-foreground font-medium">({pct}%)</span>
                   </p>
                 </div>
@@ -78,10 +78,12 @@ export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
                 style={{ background: sliceColor(i, data.length) }}
               />
               <span className="flex-1 truncate">{p.name}</span>
-              <span className="tabular-nums text-muted-foreground">{pct}%</span>
-              <span className="tabular-nums font-medium w-20 text-right">
-                {formatCurrency(p.total)} {currency}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="tabular-nums text-muted-foreground">{pct}%</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(Math.round(p.total))} {currency}
+                </span>
+              </div>
             </div>
           )
         })}
@@ -137,7 +139,7 @@ export function CategorySpendingChart({ data, currency }: CategorySpendingChartP
                     {p.label}
                   </p>
                   <p className="text-muted-foreground">
-                    {formatCurrency(value)} {currency}{' '}
+                    {formatCurrency(Math.round(value))} {currency}{' '}
                     <span className="text-foreground font-medium">({pct}%)</span>
                   </p>
                 </div>
@@ -161,10 +163,12 @@ export function CategorySpendingChart({ data, currency }: CategorySpendingChartP
             <div key={i} className="flex items-center gap-2 text-xs">
               <Icon className="size-3 shrink-0" style={{ color: sliceColor(i, data.length) }} />
               <span className="flex-1 truncate">{p.label}</span>
-              <span className="tabular-nums text-muted-foreground">{pct}%</span>
-              <span className="tabular-nums font-medium w-20 text-right">
-                {formatCurrency(p.total)} {currency}
-              </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="tabular-nums text-muted-foreground">{pct}%</span>
+                <span className="tabular-nums font-medium">
+                  {formatCurrency(Math.round(p.total))} {currency}
+                </span>
+              </div>
             </div>
           )
         })}

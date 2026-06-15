@@ -26,7 +26,7 @@ function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMo
 function AmountValue({ amount, currency }: { amount: number; currency: string }) {
   return (
     <span className="text-xl font-bold tabular-nums">
-      {formatCurrency(amount)}{' '}
+      {formatCurrency(Math.round(amount))}{' '}
       <span className="text-sm font-normal text-muted-foreground">{currency}</span>
     </span>
   )
@@ -50,7 +50,7 @@ export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
             <AmountValue amount={stats.total_amount} currency={currency} />
             {hasData && stats.this_month_total > 0 && stats.monthly_spending.length > 1 && (
               <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
-                {t('thisMonth', { amount: formatCurrency(stats.this_month_total), currency })}
+                {t('thisMonth', { amount: formatCurrency(Math.round(stats.this_month_total)), currency })}
               </span>
             )}
           </div>
@@ -99,9 +99,9 @@ export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
               <div key={e.title} className="flex items-center gap-3 text-xs">
                 <span className="w-4 shrink-0 text-muted-foreground tabular-nums">{i + 1}</span>
                 <span className="flex-1 truncate">{e.title}</span>
-                <span className="text-muted-foreground shrink-0">{e.count}×</span>
-                <span className="w-20 shrink-0 text-right font-medium tabular-nums">
-                  {formatCurrency(e.total)} {currency}
+                {e.count > 1 && <span className="text-muted-foreground shrink-0">{e.count}×</span>}
+                <span className="w-24 shrink-0 text-right font-medium tabular-nums">
+                  {formatCurrency(Math.round(e.total))} {currency}
                 </span>
               </div>
             ))}

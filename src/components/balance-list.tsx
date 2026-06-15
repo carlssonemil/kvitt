@@ -1,7 +1,7 @@
 'use client'
 
 import type { Balance } from '@/types/database'
-import { Currency, formatCurrency } from '@/components/currency'
+import { Currency } from '@/components/currency'
 import { SettleUpDialog } from '@/components/settle-up-dialog'
 import { CheckCircle2Icon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
@@ -21,19 +21,18 @@ interface BalanceListProps {
   currentUserId: string
 }
 
-function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, shortenTo }: {
+function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, shortenTo, currentUserId }: {
   balance: Balance
   groupId: string
   groupCurrency: string
   members: Member[]
   showSettleUp: boolean
   shortenTo?: boolean
+  currentUserId: string
 }) {
   const t = useTranslations('balance')
   const tc = useTranslations('common')
   const ts = useTranslations('settleUp')
-
-  const approxAmount = balance.approxAmount
 
   return (
     <div className={`flex items-start justify-between rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
@@ -45,11 +44,6 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
         </p>
         <p className="text-base font-semibold">
           <Currency amount={balance.amount} currency={balance.currency} />
-          {approxAmount !== null && approxAmount > 0 && (
-            <span className="text-sm font-normal text-muted-foreground ml-1.5">
-              (~{formatCurrency(approxAmount)} {groupCurrency})
-            </span>
-          )}
         </p>
         {(balance.breakdown.length > 0 || balance.offset) && (
           <div className="flex flex-col gap-0.5 mt-1">
@@ -58,26 +52,37 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
                 {item.expense_title}
                 {(balance.breakdown.length > 1 || balance.offset) && (
                   <span className="ml-1 tabular-nums">
-                    · <Currency amount={item.amount} currency={balance.currency} className="inline" />
+                    · <Currency amount={item.amount} currency={item.currency} className="inline" />
+                    {item.convertedAmount != null && (
+                      <span className="text-muted-foreground/60"> (~<Currency amount={item.convertedAmount} currency={balance.currency} className="inline" />)</span>
+                    )}
                   </span>
                 )}
               </p>
             ))}
-            {balance.offset && (
-              <p className="text-xs text-muted-foreground">
-                {t('offsetLabel', { name: balance.to_user_name })}
-                <span className="ml-1 tabular-nums">
-                  · −<Currency amount={balance.offset} currency={balance.currency} className="inline" />
-                </span>
+            {balance.offset != null && balance.offsetBreakdown != null && (
+              <p className="text-xs font-bold text-muted-foreground mt-2">
+                {t('offsetLabel', { name: balance.to_user_id === currentUserId ? tc('You') : balance.to_user_name })}
               </p>
             )}
+            {balance.offsetBreakdown?.map((item, i) => (
+              <p key={`offset-${i}`} className="text-xs text-muted-foreground">
+                {item.expense_title}
+                <span className="ml-1 tabular-nums">
+                  · −<Currency amount={item.amount} currency={item.currency} className="inline" />
+                  {item.convertedAmount != null && (
+                    <span className="text-muted-foreground/60"> (~<Currency amount={item.convertedAmount} currency={balance.currency} className="inline" />)</span>
+                  )}
+                </span>
+              </p>
+            ))}
           </div>
         )}
       </div>
       {showSettleUp && (
         <SettleUpDialog
           groupId={groupId}
-          currency={balance.currency}
+          currency={groupCurrency}
           members={members}
           defaultFromId={balance.from_user_id}
           defaultToId={balance.to_user_id}
@@ -120,7 +125,7 @@ export function BalanceList({ balances, members, groupId, groupCurrency, current
           />
         ) : (
           iOwe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp />
+            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp currentUserId={currentUserId} />
           ))
         )}
       </div>
@@ -129,7 +134,7 @@ export function BalanceList({ balances, members, groupId, groupCurrency, current
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('owedToYouLabel')}</p>
           {owedToMe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp shortenTo />
+            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp shortenTo currentUserId={currentUserId} />
           ))}
         </div>
       )}

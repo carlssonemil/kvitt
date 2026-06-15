@@ -89,11 +89,11 @@ export interface Balance {
   from_user_name: string
   to_user_id: string
   to_user_name: string
-  amount: number
-  currency: string
-  breakdown: { expense_title: string; amount: number }[]
+  amount: number    // always in group currency
+  currency: string  // always groupCurrency
+  breakdown: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
   offset?: number
-  approxAmount: number | null  // amount converted to group currency at historical rates; null if same currency or rates unavailable
+  offsetBreakdown?: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
 }
 
 export interface GroupStats {

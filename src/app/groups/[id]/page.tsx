@@ -51,15 +51,13 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
 
-  // Net balance per currency for the header summary
-  const netByCurrency = new Map<string, number>()
+  // Net balance in group currency for the header summary
+  let myNetBalance = 0
   for (const b of balances) {
-    if (b.to_user_id === dbUser.id)   netByCurrency.set(b.currency, (netByCurrency.get(b.currency) ?? 0) + b.amount)
-    if (b.from_user_id === dbUser.id) netByCurrency.set(b.currency, (netByCurrency.get(b.currency) ?? 0) - b.amount)
+    if (b.to_user_id === dbUser.id)   myNetBalance += b.amount
+    if (b.from_user_id === dbUser.id) myNetBalance -= b.amount
   }
-  const myNetBalances = [...netByCurrency.entries()]
-    .map(([currency, amount]) => ({ currency, amount: Math.round(amount * 100) / 100 }))
-    .filter(({ amount }) => Math.abs(amount) > 0.005)
+  myNetBalance = Math.round(myNetBalance * 100) / 100
 
   const memberList = members.map(m => ({
     id: m.user_id,
@@ -81,24 +79,24 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
         {group.description && (
           <p className="text-sm text-muted-foreground mt-0.5">{group.description}</p>
         )}
-        {myNetBalances.map(({ currency, amount }) => {
+        {Math.abs(myNetBalance) > 0.005 && (() => {
           const formatted = new Intl.NumberFormat(intlLocale, {
             style: 'currency',
-            currency,
+            currency: group.currency,
             maximumFractionDigits: 0,
-          }).format(Math.abs(amount))
-          return amount > 0 ? (
-            <p key={currency} className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
+          }).format(Math.abs(myNetBalance))
+          return myNetBalance > 0 ? (
+            <p className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
               <HandCoinsIcon className="size-3.5" />
               {t('youAreOwed', { amount: formatted })}
             </p>
           ) : (
-            <p key={currency} className="flex items-center gap-1 text-sm font-medium text-orange-600 dark:text-orange-400 mt-2">
+            <p className="flex items-center gap-1 text-sm font-medium text-orange-600 dark:text-orange-400 mt-2">
               <HandCoinsIcon className="size-3.5" />
               {t('youOwe', { amount: formatted })}
             </p>
           )
-        })}
+        })()}
       </div>
 
       <GroupTabs counts={{

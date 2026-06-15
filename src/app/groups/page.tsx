@@ -16,10 +16,10 @@ import Link from "next/link";
 import { GroupMemberAvatars } from "@/components/group-member-avatars";
 import { Badge } from "@/components/ui/badge";
 import { getTranslations, getLocale } from "next-intl/server";
+import { computeBalances } from "@/lib/balance";
 
 interface GroupWithMembers extends DbGroup {
   members: { display_name: string; avatar_url: string | null }[]
-  your_balance: number
 }
 
 export default async function GroupsPage() {
@@ -39,13 +39,7 @@ export default async function GroupsPage() {
         json_agg(
           json_build_object('display_name', u.display_name, 'avatar_url', u.avatar_url)
           ORDER BY u.display_name
-        ) AS members,
-        (
-          COALESCE((SELECT SUM(e.amount)::float FROM expenses e WHERE e.group_id = g.id AND e.paid_by = ${dbUser.id} AND e.currency = g.currency), 0)
-          - COALESCE((SELECT SUM(es.amount)::float FROM expense_splits es JOIN expenses e ON e.id = es.expense_id WHERE e.group_id = g.id AND es.user_id = ${dbUser.id} AND e.currency = g.currency), 0)
-          - COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_to = ${dbUser.id} AND s.currency = g.currency), 0)
-          + COALESCE((SELECT SUM(s.amount)::float FROM settlements s WHERE s.group_id = g.id AND s.paid_by = ${dbUser.id} AND s.currency = g.currency), 0)
-        ) AS your_balance
+        ) AS members
       FROM groups g
       JOIN group_members gm ON gm.group_id = g.id
       JOIN users u ON u.id = gm.user_id
@@ -58,6 +52,20 @@ export default async function GroupsPage() {
     getTranslations('groups'),
     getLocale(),
   ]);
+
+  // Compute net balance per group in group currency (handles all expense currencies)
+  const balancesByGroup = await Promise.all(
+    groups.map(g => computeBalances(g.id, g.currency))
+  )
+  const netBalances = balancesByGroup.map((balances, i) => {
+    const userId = dbUser.id
+    let net = 0
+    for (const b of balances) {
+      if (b.to_user_id === userId)   net += b.amount
+      if (b.from_user_id === userId) net -= b.amount
+    }
+    return { groupId: groups[i].id, net: Math.round(net * 100) / 100 }
+  })
 
   const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US';
 
@@ -76,7 +84,7 @@ export default async function GroupsPage() {
       ) : (
         <div className="flex flex-col gap-3">
           {groups.map((group) => {
-            const balance = Math.round(group.your_balance * 100) / 100;
+            const balance = netBalances.find(n => n.groupId === group.id)?.net ?? 0;
             const formatted = new Intl.NumberFormat(intlLocale, {
               style: "currency",
               currency: group.currency,

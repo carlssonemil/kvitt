@@ -3,9 +3,10 @@
 import type { Balance } from '@/types/database'
 import { Currency } from '@/components/currency'
 import { SettleUpDialog } from '@/components/settle-up-dialog'
-import { CheckCircle2Icon } from 'lucide-react'
+import { CheckCircle2Icon, ChevronDownIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { useTranslations } from 'next-intl'
 
 interface Member {
@@ -35,18 +36,23 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
   const ts = useTranslations('settleUp')
 
   return (
-    <div className={`flex items-start justify-between rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
-      <div className="flex flex-col gap-0.5">
-        <p className="text-sm">
-          <span className="font-medium">{balance.from_user_name}</span>
-          {` ${t('owes')} `}
-          <span className="font-medium">{shortenTo ? tc('you') : balance.to_user_name}</span>
-        </p>
-        <p className="text-base font-semibold">
-          <Currency amount={balance.amount} currency={balance.currency} />
-        </p>
-        {(balance.breakdown.length > 0 || balance.offset) && (
-          <div className="flex flex-col gap-0.5 mt-1">
+    <Collapsible>
+      <div className={`rounded-lg border p-4 ${showSettleUp ? 'border-primary/30 bg-primary/5' : ''}`}>
+        <CollapsibleTrigger className="group flex w-full items-center justify-between gap-3 text-left">
+          <div className="flex flex-col gap-0.5">
+            <p className="text-sm">
+              <span className="font-medium">{balance.from_user_name}</span>
+              {` ${t('owes')} `}
+              <span className="font-medium">{shortenTo ? tc('you') : balance.to_user_name}</span>
+            </p>
+            <p className="text-base font-semibold">
+              <Currency amount={balance.amount} currency={balance.currency} />
+            </p>
+          </div>
+          <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+        </CollapsibleTrigger>
+        <CollapsibleContent className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+          <div className="mt-3 pt-3 border-t flex flex-col gap-0.5">
             {balance.breakdown.map((item, i) => (
               <p key={i} className="text-xs text-muted-foreground">
                 {item.expense_title}
@@ -76,25 +82,25 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
                 </span>
               </p>
             ))}
+            {showSettleUp && (
+              <SettleUpDialog
+                groupId={groupId}
+                currency={groupCurrency}
+                members={members}
+                defaultFromId={balance.from_user_id}
+                defaultToId={balance.to_user_id}
+                defaultAmount={balance.amount}
+                trigger={
+                  <Button variant="outline" size="sm" className="w-full mt-3">
+                    {shortenTo ? t('markSettled') : ts('trigger')}
+                  </Button>
+                }
+              />
+            )}
           </div>
-        )}
+        </CollapsibleContent>
       </div>
-      {showSettleUp && (
-        <SettleUpDialog
-          groupId={groupId}
-          currency={groupCurrency}
-          members={members}
-          defaultFromId={balance.from_user_id}
-          defaultToId={balance.to_user_id}
-          defaultAmount={balance.amount}
-          trigger={
-            <Button variant="outline" size="sm">
-              {shortenTo ? t('markSettled') : ts('trigger')}
-            </Button>
-          }
-        />
-      )}
-    </div>
+    </Collapsible>
   )
 }
 

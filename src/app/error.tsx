@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertCircleIcon, Loader2Icon } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
+import { AnimatedBird } from '@/components/auth/animated-bird'
 
 export default function GlobalError({
   error,
@@ -29,7 +30,7 @@ export default function GlobalError({
   if (isAutoRetrying) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-20 text-center">
-        <Loader2Icon className="size-10 animate-spin text-muted-foreground" />
+        <AnimatedBird className="size-10 text-primary" />
         <div className="flex flex-col gap-1">
           <h1 className="text-lg font-semibold">Connecting...</h1>
           <p className="text-sm text-muted-foreground">Warming up the database, please wait.</p>

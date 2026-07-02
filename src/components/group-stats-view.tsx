@@ -17,7 +17,7 @@ function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMo
   const pct = Math.round(((thisMonth - lastMonth) / lastMonth) * 100)
   const up = pct >= 0
   return (
-    <span className={cn('text-xs font-medium', up ? 'text-destructive' : 'text-green-600 dark:text-green-400')}>
+    <span className={cn('text-xs font-medium', up ? 'text-destructive' : 'text-primary')}>
       {up ? '▲' : '▼'} {Math.abs(pct)}% {label}
     </span>
   )

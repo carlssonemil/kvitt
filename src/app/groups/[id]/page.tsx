@@ -101,7 +101,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
             maximumFractionDigits: 0,
           }).format(Math.abs(myNetBalance))
           return myNetBalance > 0 ? (
-            <p className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400 mt-2">
+            <p className="flex items-center gap-1 text-sm font-medium text-primary mt-2">
               <HandCoinsIcon className="size-3.5" />
               {t('youAreOwed', { amount: formatted })}
             </p>

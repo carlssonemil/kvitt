@@ -118,12 +118,12 @@ export default async function GroupsPage() {
             <span className="text-sm text-muted-foreground">{group.description}</span>
           )}
           {opts?.hidden && newActivityByGroup.get(group.id) && (
-            <Badge variant="outline" className="text-xs text-green-600 border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 dark:text-green-400 w-fit mt-1">
+            <Badge variant="outline" className="text-xs text-primary border-primary/20 bg-primary/10 w-fit mt-1">
               {t('newActivitySinceHidden')}
             </Badge>
           )}
           {balance > 0.005 && (
-            <Badge variant="outline" className="md:hidden text-xs text-green-600 border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 dark:text-green-400 w-fit mt-1">
+            <Badge variant="outline" className="md:hidden text-xs text-primary border-primary/20 bg-primary/10 w-fit mt-1">
               {t('youAreOwed', { amount: formatted })}
             </Badge>
           )}
@@ -135,7 +135,7 @@ export default async function GroupsPage() {
         </div>
         <div className="flex items-center gap-3">
           {balance > 0.005 && (
-            <Badge variant="outline" className="hidden md:inline-flex text-xs text-green-600 border-green-200 bg-green-50 dark:bg-green-950/30 dark:border-green-800 dark:text-green-400">
+            <Badge variant="outline" className="hidden md:inline-flex text-xs text-primary border-primary/20 bg-primary/10">
               {t('youAreOwed', { amount: formatted })}
             </Badge>
           )}
@@ -184,7 +184,7 @@ export default async function GroupsPage() {
                     {hiddenGroups.length}
                   </Badge>
                   {anyHiddenGroupHasNewActivity && (
-                    <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                    <span className="text-xs font-medium text-primary">
                       {t('newActivityHint')}
                     </span>
                   )}

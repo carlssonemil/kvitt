@@ -62,12 +62,19 @@
     "youAreOwed": "Du har {amount} att få",
     "youOwe": "Du är skyldig {amount}",
     "emptyTitle": "Inga grupper än",
-    "emptyBody": "Skapa en grupp för att börja dela utgifter."
+    "emptyBody": "Skapa en grupp för att börja dela utgifter.",
+    "emptyActiveTitle": "Inga synliga grupper",
+    "emptyActiveBody": "Alla dina grupper är dolda just nu. Fäll ut \"{hiddenLabel}\" nedan för att se dem.",
+    "hiddenGroups": "Dolda grupper",
+    "newActivityHint": "Ny aktivitet",
+    "newActivitySinceHidden": "Ny aktivitet sedan du dolde den här gruppen"
   },
   "group": {
     "back": "Tillbaka",
     "youAreOwed": "Du har {amount} att få",
     "youOwe": "Du är skyldig {amount}",
+    "inactiveHintBody": "Den här gruppen verkar vara uppgjord och har inte haft någon ny aktivitet. Dölj den för att rensa din lista. Du kan alltid visa den igen senare.",
+    "hiddenNotice": "Den här gruppen är dold. Den visas inte i din gruppöversikt.",
     "tabs": {
       "expenses": "Utgifter",
       "balances": "Saldon",
@@ -211,6 +218,12 @@
     "removeMemberTitle": "Ta bort medlem?",
     "removeMemberConfirm": "Ta bort",
     "memberRemoved": "Medlem borttagen",
+    "hideGroup": "Dölj grupp",
+    "hideGroupDesc": "Dölj den här gruppen från din gruppöversikt. Den syns fortfarande för andra medlemmar, och du kan öppna den direkt eller sluta dölja den senare. Om en ny utgift eller uppgörelse läggs till medan den är dold visas en markering bredvid den så att du inte missar den.",
+    "unhideGroup": "Sluta dölja grupp",
+    "unhideGroupDesc": "Visa den här gruppen i din gruppöversikt igen.",
+    "groupHidden": "Grupp dold",
+    "groupUnhidden": "Grupp visas igen",
     "dangerZone": "Riskzon",
     "deleteGroupTitle": "Ta bort grupp?",
     "deleteGroupDesc": "Detta tar permanent bort gruppen och alla dess utgifter och uppgörelser. Det går inte att ångra.",

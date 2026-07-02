@@ -117,6 +117,56 @@ export async function deleteGroup(formData: FormData): Promise<{ error?: string 
   }
 }
 
+export async function hideGroup(groupId: string): Promise<{ error?: string }> {
+  const { session, user } = await neonAuth()
+  if (!session || !user) return { error: 'Not authenticated' }
+
+  try {
+    const dbUser = await ensureUser({
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.image ?? null,
+    })
+
+    await sql`
+      UPDATE group_members SET hidden_at = now()
+      WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
+    `
+
+    revalidatePath(ROUTES.GROUPS)
+    revalidatePath(ROUTES.GROUP(groupId))
+    return {}
+  } catch (err) {
+    console.error('hideGroup error:', err)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+}
+
+export async function unhideGroup(groupId: string): Promise<{ error?: string }> {
+  const { session, user } = await neonAuth()
+  if (!session || !user) return { error: 'Not authenticated' }
+
+  try {
+    const dbUser = await ensureUser({
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.image ?? null,
+    })
+
+    await sql`
+      UPDATE group_members SET hidden_at = NULL
+      WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
+    `
+
+    revalidatePath(ROUTES.GROUPS)
+    revalidatePath(ROUTES.GROUP(groupId))
+    return {}
+  } catch (err) {
+    console.error('unhideGroup error:', err)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+}
+
 export async function regenerateInviteCode(groupId: string): Promise<{ inviteCode?: string; error?: string }> {
   const { session, user } = await neonAuth()
   if (!session || !user) return { error: 'Not authenticated' }

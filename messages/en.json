@@ -62,12 +62,19 @@
     "youAreOwed": "You are owed {amount}",
     "youOwe": "You owe {amount}",
     "emptyTitle": "No groups yet",
-    "emptyBody": "Create a group to start splitting expenses."
+    "emptyBody": "Create a group to start splitting expenses.",
+    "emptyActiveTitle": "No visible groups",
+    "emptyActiveBody": "All your groups are hidden right now. Expand \"{hiddenLabel}\" below to see them.",
+    "hiddenGroups": "Hidden groups",
+    "newActivityHint": "New activity",
+    "newActivitySinceHidden": "New activity since you hid this group"
   },
   "group": {
     "back": "Back",
     "youAreOwed": "You are owed {amount}",
     "youOwe": "You owe {amount}",
+    "inactiveHintBody": "This group looks settled and hasn't had recent activity. Hide it to declutter your list. You can always unhide it later.",
+    "hiddenNotice": "This group is hidden. It won't show up in your groups list.",
     "tabs": {
       "expenses": "Expenses",
       "balances": "Balances",
@@ -211,6 +218,12 @@
     "removeMemberTitle": "Remove member?",
     "removeMemberConfirm": "Remove",
     "memberRemoved": "Member removed",
+    "hideGroup": "Hide group",
+    "hideGroupDesc": "Hide this group from your groups list. It stays visible to other members, and you can still open it directly or unhide it later. If a new expense or settlement is added while it's hidden, you'll see a highlight next to it so you don't miss it.",
+    "unhideGroup": "Unhide group",
+    "unhideGroupDesc": "Show this group in your groups list again.",
+    "groupHidden": "Group hidden",
+    "groupUnhidden": "Group unhidden",
     "dangerZone": "Danger zone",
     "deleteGroupTitle": "Delete group?",
     "deleteGroupDesc": "This will permanently delete the group and all its expenses and settlements. This cannot be undone.",

@@ -25,6 +25,8 @@ export interface DbGroupMember {
   group_id: string
   user_id: string
   joined_at: string
+  hidden_at: string | null
+  activity_seen_at: string | null
 }
 
 export interface DbExpense {

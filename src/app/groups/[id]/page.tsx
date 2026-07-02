@@ -14,6 +14,7 @@ import { CreateExpenseDialog } from '@/components/create-expense-dialog'
 import { ExpenseList } from '@/components/expense-list'
 import { BalanceList } from '@/components/balance-list'
 import { GroupSettings } from '@/components/group-settings'
+import { GroupVisibilityBanner } from '@/components/group-visibility-banner'
 import { Separator } from '@/components/ui/separator'
 import { GroupStatsView } from '@/components/group-stats-view'
 import { getTranslations, getLocale } from 'next-intl/server'
@@ -32,12 +33,18 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   // Verify membership + fetch group
   const [group] = await sql`
-    SELECT g.* FROM groups g
+    SELECT g.*, gm.hidden_at FROM groups g
     JOIN group_members gm ON gm.group_id = g.id
     WHERE g.id = ${id} AND gm.user_id = ${dbUser.id}
-  ` as DbGroup[]
+  ` as (DbGroup & { hidden_at: string | null })[]
 
   if (!group) notFound()
+
+  // Mark any "new activity" hint as seen now that the (possibly hidden) group is being viewed
+  await sql`
+    UPDATE group_members SET activity_seen_at = now()
+    WHERE group_id = ${id} AND user_id = ${dbUser.id} AND hidden_at IS NOT NULL
+  `
 
   const [members, expenses, settlements, balances, stats, t, locale] = await Promise.all([
     getGroupMembers(id),
@@ -59,6 +66,11 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
   }
   myNetBalance = Math.round(myNetBalance * 100) / 100
 
+  // Suggest hiding the group once it's fully settled and has had at least some history
+  const isFullySettled = !balances.some(b => b.from_user_id === dbUser.id || b.to_user_id === dbUser.id)
+  const hasHistory = expenses.length > 0 && settlements.length > 0
+  const suggestHide = !group.hidden_at && isFullySettled && hasHistory
+
   const memberList = members.map(m => ({
     id: m.user_id,
     display_name: m.display_name,
@@ -78,6 +90,9 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
         <h1 className="text-2xl font-bold truncate">{group.name}</h1>
         {group.description && (
           <p className="text-sm text-muted-foreground mt-0.5">{group.description}</p>
+        )}
+        {(group.hidden_at || suggestHide) && (
+          <GroupVisibilityBanner groupId={id} hidden={!!group.hidden_at} />
         )}
         {Math.abs(myNetBalance) > 0.005 && (() => {
           const formatted = new Intl.NumberFormat(intlLocale, {
@@ -147,6 +162,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
             inviteCode={group.invite_code}
             members={memberList}
             currentUserId={dbUser.id}
+            hiddenAt={group.hidden_at}
           />
         </TabsContent>
       </GroupTabs>

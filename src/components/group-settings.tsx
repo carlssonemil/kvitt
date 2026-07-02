@@ -3,7 +3,7 @@
 import { useState, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Trash2Icon, CheckIcon, LoaderCircleIcon, CopyIcon, RefreshCwIcon, LinkIcon } from 'lucide-react'
+import { Trash2Icon, CheckIcon, LoaderCircleIcon, CopyIcon, RefreshCwIcon, LinkIcon, ArchiveIcon, ArchiveRestoreIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { UserAvatar } from '@/components/user-avatar'
-import { updateGroup, deleteGroup, regenerateInviteCode } from '@/actions/group-actions'
+import { updateGroup, deleteGroup, regenerateInviteCode, hideGroup, unhideGroup } from '@/actions/group-actions'
 import { removeMember } from '@/actions/member-actions'
 import { SUPPORTED_CURRENCIES, ROUTES } from '@/lib/constants'
 import { useTranslations } from 'next-intl'
@@ -32,6 +32,7 @@ interface GroupSettingsProps {
   inviteCode: string
   members: Member[]
   currentUserId: string
+  hiddenAt: string | null
 }
 
 export function GroupSettings({
@@ -43,6 +44,7 @@ export function GroupSettings({
   inviteCode: initialInviteCode,
   members,
   currentUserId,
+  hiddenAt,
 }: GroupSettingsProps) {
   const router = useRouter()
   const [name, setName] = useState(groupName)
@@ -52,6 +54,7 @@ export function GroupSettings({
   const [isPending, startTransition] = useTransition()
   const [isRemoving, setIsRemoving] = useTransition()
   const [isRegenerating, startRegenerating] = useTransition()
+  const [isTogglingHidden, startTogglingHidden] = useTransition()
   const [inviteCode, setInviteCode] = useState(initialInviteCode)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const t = useTranslations('groupSettings')
@@ -109,6 +112,18 @@ export function GroupSettings({
       }
       toast.success(t('groupDeleted'))
       router.push(ROUTES.GROUPS)
+    })
+  }
+
+  function handleToggleHidden() {
+    startTogglingHidden(async () => {
+      const result = hiddenAt ? await unhideGroup(groupId) : await hideGroup(groupId)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      toast.success(hiddenAt ? t('groupUnhidden') : t('groupHidden'))
+      router.refresh()
     })
   }
 
@@ -242,6 +257,19 @@ export function GroupSettings({
             </div>
           ))}
         </div>
+      </section>
+
+      <Separator />
+
+      <section>
+        <h2 className="text-sm font-semibold mb-2">{hiddenAt ? t('unhideGroup') : t('hideGroup')}</h2>
+        <p className="text-sm text-muted-foreground mb-4">
+          {hiddenAt ? t('unhideGroupDesc') : t('hideGroupDesc')}
+        </p>
+        <Button variant="outline" onClick={handleToggleHidden} disabled={isTogglingHidden}>
+          {hiddenAt ? <ArchiveRestoreIcon className="size-4" /> : <ArchiveIcon className="size-4" />}
+          {hiddenAt ? t('unhideGroup') : t('hideGroup')}
+        </Button>
       </section>
 
       {currentUserId === createdBy && (

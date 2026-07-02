@@ -31,8 +31,13 @@ CREATE TABLE IF NOT EXISTS group_members (
   group_id  UUID NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
   user_id   UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   joined_at TIMESTAMPTZ DEFAULT now(),
+  hidden_at TIMESTAMPTZ,
+  activity_seen_at TIMESTAMPTZ,
   UNIQUE (group_id, user_id)
 );
+
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS hidden_at TIMESTAMPTZ;
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS activity_seen_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_group_members_group_id ON group_members(group_id);
 CREATE INDEX IF NOT EXISTS idx_group_members_user_id  ON group_members(user_id);

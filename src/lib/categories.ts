@@ -14,6 +14,9 @@ import {
   RepeatIcon,
   PlaneIcon,
   HandCoinsIcon,
+  Flower2Icon,
+  FuelIcon,
+  SquareParkingIcon,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -21,9 +24,12 @@ export const EXPENSE_CATEGORIES = [
   { key: 'accommodation', label: 'Accommodation',  icon: BedDoubleIcon },
   { key: 'entertainment', label: 'Entertainment',  icon: PopcornIcon },
   { key: 'food',          label: 'Food & Drink',   icon: UtensilsIcon },
+  { key: 'fuel',          label: 'Fuel',           icon: FuelIcon },
   { key: 'gifts',         label: 'Gifts',          icon: GiftIcon },
   { key: 'groceries',     label: 'Groceries',      icon: ShoppingBasketIcon },
   { key: 'health',        label: 'Health',         icon: HeartPulseIcon },
+  { key: 'parking',       label: 'Parking',        icon: SquareParkingIcon },
+  { key: 'plants',        label: 'Plants',         icon: Flower2Icon },
   { key: 'rent',          label: 'Rent',           icon: HomeIcon },
   { key: 'shopping',      label: 'Shopping',       icon: ShoppingCartIcon },
   { key: 'subscriptions', label: 'Subscriptions',  icon: RepeatIcon },

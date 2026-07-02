@@ -239,7 +239,7 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
   const availableCategories = React.useMemo(() => {
     const seen = new Set<string>()
     for (const e of expenses) {
-      seen.add(e.category ?? 'other')
+      seen.add(e.category ?? 'uncategorized')
     }
     return Array.from(seen).sort()
   }, [expenses])
@@ -270,7 +270,7 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
     if (typeFilter !== 'all' && item.kind !== typeFilter) return false
     if (categoryFilter !== 'all') {
       if (item.kind !== 'expense') return false
-      const itemCategory = item.data.category ?? 'other'
+      const itemCategory = item.data.category ?? 'uncategorized'
       if (itemCategory !== categoryFilter) return false
     }
     if (dateRange?.from) {

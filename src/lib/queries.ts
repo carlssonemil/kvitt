@@ -167,17 +167,19 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
     ` as unknown as Promise<{ category: string | null; currency: string; date: string; daily_total: number }[]>,
   ])
 
-  // Collect all unique expense dates across all queries, then fetch historical rates for each.
+  // Collect unique expense dates that actually need conversion, then fetch historical rates for each.
   const allDates = new Set<string>()
-  for (const r of totalsRows) allDates.add(r.date)
-  for (const r of yourPaidRows) allDates.add(r.date)
-  for (const r of yourShareRows) allDates.add(r.date)
-  for (const r of monthlyRows) allDates.add(r.date)
-  for (const r of splitRows) allDates.add(r.date)
-  for (const r of topRows) allDates.add(r.date)
-  for (const r of categoryRows) allDates.add(r.date)
+  for (const r of totalsRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of yourPaidRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of yourShareRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of monthlyRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of splitRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of topRows) if (r.currency !== groupCurrency) allDates.add(r.date)
+  for (const r of categoryRows) if (r.currency !== groupCurrency) allDates.add(r.date)
 
-  const conversionsByDate = await getMultiDateConversions(groupCurrency, [...allDates])
+  const conversionsByDate = allDates.size > 0
+    ? await getMultiDateConversions(groupCurrency, [...allDates])
+    : new Map<string, Record<string, number>>()
 
   // Converts an amount from fromCurrency to groupCurrency using the rate on the expense date.
   // Falls back to the raw amount if rates are unavailable for that date.

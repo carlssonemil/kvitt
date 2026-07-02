@@ -1,14 +1,53 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import type { GroupStats } from '@/types/database'
 import { formatCurrency } from '@/components/currency'
 import { cn } from '@/lib/utils'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
-import { getTranslations } from 'next-intl/server'
+import { Spinner } from '@/components/ui/spinner'
+import { getGroupStatsAction } from '@/actions/group-actions'
+import { useTranslations } from 'next-intl'
 
 interface GroupStatsViewProps {
   stats: GroupStats
   currency: string
+}
+
+interface GroupStatsTabProps {
+  groupId: string
+  currency: string
+}
+
+export function GroupStatsTab({ groupId, currency }: GroupStatsTabProps) {
+  const [stats, setStats] = useState<GroupStats | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    getGroupStatsAction(groupId).then(result => {
+      if (cancelled) return
+      if (result.error) setError(result.error)
+      else setStats(result.stats ?? null)
+    })
+    return () => { cancelled = true }
+  }, [groupId])
+
+  if (error) {
+    return <p className="text-sm text-destructive py-8 text-center">{error}</p>
+  }
+
+  if (!stats) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Spinner className="size-5 text-muted-foreground" />
+      </div>
+    )
+  }
+
+  return <GroupStatsView stats={stats} currency={currency} />
 }
 
 function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMonth: number; label: string }) {
@@ -32,8 +71,8 @@ function AmountValue({ amount, currency }: { amount: number; currency: string })
   )
 }
 
-export async function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
-  const t = await getTranslations('stats')
+export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
+  const t = useTranslations('stats')
   const hasData = stats.expense_count > 0
   const splitTotal = stats.payment_split.reduce((sum, p) => sum + p.total, 0)
 

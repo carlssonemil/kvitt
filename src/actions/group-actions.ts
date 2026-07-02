@@ -3,8 +3,10 @@
 import { neonAuth } from '@/lib/auth/server'
 import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
+import { getGroupStats } from '@/lib/queries'
 import { revalidatePath } from 'next/cache'
 import { ROUTES, SUPPORTED_CURRENCIES } from '@/lib/constants'
+import type { GroupStats } from '@/types/database'
 import { nanoid } from 'nanoid'
 
 export async function createGroup(formData: FormData): Promise<{ error?: string }> {
@@ -190,6 +192,33 @@ export async function regenerateInviteCode(groupId: string): Promise<{ inviteCod
     return { inviteCode }
   } catch (err) {
     console.error('regenerateInviteCode error:', err)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+}
+
+export async function getGroupStatsAction(groupId: string): Promise<{ stats?: GroupStats; error?: string }> {
+  const { session, user } = await neonAuth()
+  if (!session || !user) return { error: 'Not authenticated' }
+
+  try {
+    const dbUser = await ensureUser({
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.image ?? null,
+    })
+
+    const [group] = await sql`
+      SELECT g.currency FROM groups g
+      JOIN group_members gm ON gm.group_id = g.id
+      WHERE g.id = ${groupId} AND gm.user_id = ${dbUser.id}
+    ` as { currency: string }[]
+
+    if (!group) return { error: 'Not a member of this group' }
+
+    const stats = await getGroupStats(groupId, dbUser.id, group.currency)
+    return { stats }
+  } catch (err) {
+    console.error('getGroupStatsAction error:', err)
     return { error: 'Something went wrong. Please try again.' }
   }
 }

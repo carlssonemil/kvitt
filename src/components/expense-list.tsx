@@ -244,10 +244,26 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
     return Array.from(seen).sort()
   }, [expenses])
 
-  const feed: FeedItem[] = [
+  const feed: FeedItem[] = React.useMemo(() => [
     ...expenses.map(e => { const d = new Date(e.date).toISOString(); const ca = new Date(e.created_at).toISOString(); return { kind: 'expense' as const, data: e, sortKey: d.slice(0, 10) + ca } }),
     ...settlements.map(s => { const ca = new Date(s.created_at).toISOString(); return { kind: 'settlement' as const, data: s, sortKey: ca.slice(0, 10) + ca } }),
-  ].sort((a, b) => b.sortKey.localeCompare(a.sortKey))
+  ].sort((a, b) => b.sortKey.localeCompare(a.sortKey)), [expenses, settlements])
+
+  const filteredFeed = React.useMemo(() => feed.filter(item => {
+    if (typeFilter !== 'all' && item.kind !== typeFilter) return false
+    if (categoryFilter !== 'all') {
+      if (item.kind !== 'expense') return false
+      const itemCategory = item.data.category ?? 'uncategorized'
+      if (itemCategory !== categoryFilter) return false
+    }
+    if (dateRange?.from) {
+      const itemDate = new Date(item.kind === 'expense' ? item.data.date : item.data.created_at)
+      const from = startOfDay(dateRange.from)
+      const to = endOfDay(dateRange.to ?? dateRange.from)
+      if (!isWithinInterval(itemDate, { start: from, end: to })) return false
+    }
+    return true
+  }), [feed, typeFilter, categoryFilter, dateRange])
 
   if (feed.length === 0) {
     return (
@@ -265,22 +281,6 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
       </div>
     )
   }
-
-  const filteredFeed = feed.filter(item => {
-    if (typeFilter !== 'all' && item.kind !== typeFilter) return false
-    if (categoryFilter !== 'all') {
-      if (item.kind !== 'expense') return false
-      const itemCategory = item.data.category ?? 'uncategorized'
-      if (itemCategory !== categoryFilter) return false
-    }
-    if (dateRange?.from) {
-      const itemDate = new Date(item.kind === 'expense' ? item.data.date : item.data.created_at)
-      const from = startOfDay(dateRange.from)
-      const to = endOfDay(dateRange.to ?? dateRange.from)
-      if (!isWithinInterval(itemDate, { start: from, end: to })) return false
-    }
-    return true
-  })
 
   const hasActiveFilter = typeFilter !== 'all' || categoryFilter !== 'all' || !!dateRange?.from
 

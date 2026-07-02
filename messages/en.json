@@ -296,6 +296,50 @@
     "subtitle": "New updates and improvements to Kvitt.",
     "entries": [
       {
+        "date": "2026-07-02",
+        "title": "Hide or archive groups you're done with",
+        "description": [
+          "Members can now hide a group, like a finished trip, from their own groups list without affecting other members.",
+          "Hidden groups stay reachable and show a badge if new expenses or settlements are added while hidden."
+        ]
+      },
+      {
+        "date": "2026-06-18",
+        "title": "Smoother reconnects after idle",
+        "description": [
+          "When the database is waking up from being idle, Kvitt now shows an animated connecting screen and automatically retries instead of immediately showing an error."
+        ]
+      },
+      {
+        "date": "2026-06-15",
+        "title": "Unified balances and a tidier mobile view",
+        "description": [
+          "Balances across different currencies are now merged into a single amount in the group's currency, instead of showing separate per-currency debts.",
+          "Expense breakdowns and the \"Mark as settled\" button on the balance tab are now tucked behind a collapsible chevron for a cleaner mobile layout.",
+          "Stats cards now round currency values, tidy up the layout, and hide the expense count badge when it's not useful."
+        ]
+      },
+      {
+        "date": "2026-06-09",
+        "title": "Smarter debt netting and currency-aware stats",
+        "description": [
+          "When two people owe each other, Kvitt now nets the debts down to a single amount, with a line showing what was offset.",
+          "Stats now convert every expense into the group's currency using the exchange rate from the expense's date, instead of summing raw amounts across currencies.",
+          "Balance amounts use the same date-accurate exchange rates as stats.",
+          "The \"this month\" badge and monthly spending chart are hidden when all of a group's expenses fall in a single month."
+        ]
+      },
+      {
+        "date": "2026-06-08",
+        "title": "Balance calculation fixes",
+        "description": [
+          "Fixed a sign error that made settled users still appear to owe money.",
+          "Fixed settlements creating phantom debtors for people who never had any expenses.",
+          "Balances now show the direct debt between each pair of people, with the contributing expenses listed, instead of a simplified route through a third person.",
+          "Fixed EUR to SEK approximate conversions showing the wrong value."
+        ]
+      },
+      {
         "date": "2026-05-07",
         "title": "English & Swedish: full i18n",
         "description": [

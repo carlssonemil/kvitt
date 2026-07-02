@@ -296,6 +296,50 @@
     "subtitle": "Nyheter och förbättringar i Kvitt.",
     "entries": [
       {
+        "date": "2026-07-02",
+        "title": "Dölj eller arkivera grupper du är klar med",
+        "description": [
+          "Medlemmar kan nu dölja en grupp, till exempel en avslutad resa, från sin egen gruppista utan att det påverkar andra medlemmar.",
+          "Dolda grupper går fortfarande att nå och visar en markering om nya utgifter eller betalningar läggs till medan gruppen är dold."
+        ]
+      },
+      {
+        "date": "2026-06-18",
+        "title": "Smidigare återanslutning efter inaktivitet",
+        "description": [
+          "När databasen vaknar upp efter att ha varit inaktiv visar Kvitt nu en animerad anslutningsskärm och försöker automatiskt igen istället för att direkt visa ett felmeddelande."
+        ]
+      },
+      {
+        "date": "2026-06-15",
+        "title": "Sammanslagna saldon och en snyggare mobilvy",
+        "description": [
+          "Saldon i olika valutor slås nu ihop till ett enda belopp i gruppens valuta, istället för att visas som separata skulder per valuta.",
+          "Utgiftsspecifikationer och knappen \"Markera som betald\" på saldofliken göms nu bakom en expanderbar pil för en renare mobillayout.",
+          "Statistikkorten avrundar nu valutabelopp, har fått en snyggare layout och döljer antalsmarkeringen när den inte behövs."
+        ]
+      },
+      {
+        "date": "2026-06-09",
+        "title": "Smartare skuldnettning och valutaanpassad statistik",
+        "description": [
+          "När två personer är skyldiga varandra pengar kvittar Kvitt nu skulderna mot varandra till ett enda belopp, med en rad som visar vad som kvittades.",
+          "Statistiken konverterar nu varje utgift till gruppens valuta med växelkursen från utgiftens datum, istället för att summera råa belopp över valutor.",
+          "Saldobelopp använder samma datumkorrekta växelkurser som statistiken.",
+          "Markeringen \"denna månad\" och diagrammet för månadsutgifter döljs när alla en grupps utgifter ligger inom samma månad."
+        ]
+      },
+      {
+        "date": "2026-06-08",
+        "title": "Buggfixar för saldoberäkning",
+        "description": [
+          "Fixade ett teckenfel som fick betalda användare att fortfarande se ut att vara skyldiga pengar.",
+          "Fixade att betalningar kunde skapa spökskulder för personer som aldrig haft några utgifter.",
+          "Saldon visar nu den direkta skulden mellan varje par av personer, med tillhörande utgifter listade, istället för en förenklad väg via en tredje person.",
+          "Fixade att ungefärlig konvertering från EUR till SEK visade fel belopp."
+        ]
+      },
+      {
         "date": "2026-05-07",
         "title": "Engelska & svenska: fullt i18n-stöd",
         "description": [

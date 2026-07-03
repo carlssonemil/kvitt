@@ -4,10 +4,9 @@ import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, XAxis } from "rechar
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart"
-import { formatCurrency } from "@/components/currency"
+import { formatNumber } from "@/components/currency"
 import { getCategoryIcon, EXPENSE_CATEGORIES } from "@/lib/categories"
 import { useTranslations } from 'next-intl'
 
@@ -16,6 +15,7 @@ import { useTranslations } from 'next-intl'
 interface PaymentSplitChartProps {
   data: { user_id: string; name: string; total: number }[]
   currency: string
+  locale: string
 }
 
 function sliceColor(index: number, total: number) {
@@ -25,7 +25,7 @@ function sliceColor(index: number, total: number) {
   return `color-mix(in oklch, var(--primary) ${Math.round(opacity * 100)}%, transparent)`
 }
 
-export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
+export function PaymentSplitChart({ data, currency, locale }: PaymentSplitChartProps) {
   const total = data.reduce((sum, p) => sum + p.total, 0)
 
   const chartConfig = Object.fromEntries(
@@ -52,7 +52,7 @@ export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
                 <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs flex flex-col gap-1">
                   <p className="font-medium">{name}</p>
                   <p className="text-muted-foreground">
-                    {formatCurrency(Math.round(value))} {currency}{' '}
+                    {formatNumber(Math.round(value), locale)} {currency}{' '}
                     <span className="text-foreground font-medium">({pct}%)</span>
                   </p>
                 </div>
@@ -81,7 +81,7 @@ export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
               <div className="flex items-center gap-2 shrink-0">
                 <span className="tabular-nums text-muted-foreground">{pct}%</span>
                 <span className="tabular-nums font-medium">
-                  {formatCurrency(Math.round(p.total))} {currency}
+                  {formatNumber(Math.round(p.total), locale)} {currency}
                 </span>
               </div>
             </div>
@@ -97,11 +97,12 @@ export function PaymentSplitChart({ data, currency }: PaymentSplitChartProps) {
 interface CategorySpendingChartProps {
   data: { category: string | null; total: number }[]
   currency: string
+  locale: string
 }
 
 const CATEGORY_KEYS = new Set(['settlement', 'uncategorized', ...EXPENSE_CATEGORIES.map(c => c.key)])
 
-export function CategorySpendingChart({ data, currency }: CategorySpendingChartProps) {
+export function CategorySpendingChart({ data, currency, locale }: CategorySpendingChartProps) {
   const tcat = useTranslations('categories')
   const getCatLabel = (cat: string | null) => {
     const key = cat && CATEGORY_KEYS.has(cat) ? cat : 'uncategorized'
@@ -139,7 +140,7 @@ export function CategorySpendingChart({ data, currency }: CategorySpendingChartP
                     {p.label}
                   </p>
                   <p className="text-muted-foreground">
-                    {formatCurrency(Math.round(value))} {currency}{' '}
+                    {formatNumber(Math.round(value), locale)} {currency}{' '}
                     <span className="text-foreground font-medium">({pct}%)</span>
                   </p>
                 </div>
@@ -166,7 +167,7 @@ export function CategorySpendingChart({ data, currency }: CategorySpendingChartP
               <div className="flex items-center gap-2 shrink-0">
                 <span className="tabular-nums text-muted-foreground">{pct}%</span>
                 <span className="tabular-nums font-medium">
-                  {formatCurrency(Math.round(p.total))} {currency}
+                  {formatNumber(Math.round(p.total), locale)} {currency}
                 </span>
               </div>
             </div>
@@ -182,33 +183,57 @@ export function CategorySpendingChart({ data, currency }: CategorySpendingChartP
 interface MonthlySpendingChartProps {
   data: { month: string; total: number }[]
   currency: string
+  locale: string
 }
 
 const monthlyChartConfig = {
   total: { label: "Spending", color: "var(--primary)" },
 } satisfies ChartConfig
 
-export function MonthlySpendingChart({ data, currency }: MonthlySpendingChartProps) {
+export function MonthlySpendingChart({ data, currency, locale }: MonthlySpendingChartProps) {
   return (
-    <ChartContainer config={monthlyChartConfig} className="h-[180px] w-full">
-      <BarChart accessibilityLayer data={data} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
-        <CartesianGrid vertical={false} stroke="var(--border)" />
-        <XAxis
-          dataKey="month"
-          tickLine={false}
-          axisLine={false}
-          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-        />
-        <ChartTooltip
-          cursor={false}
-          content={
-            <ChartTooltipContent
-              formatter={(value) => `${formatCurrency(value as number)} ${currency}`}
-            />
-          }
-        />
-        <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-      </BarChart>
-    </ChartContainer>
+    <div className="flex flex-col items-center gap-4">
+      <ChartContainer config={monthlyChartConfig} className="h-[180px] w-full">
+        <BarChart accessibilityLayer data={data} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
+          <CartesianGrid vertical={false} stroke="var(--border)" />
+          <XAxis
+            dataKey="month"
+            tickLine={false}
+            axisLine={false}
+            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+          />
+          <ChartTooltip
+            cursor={false}
+            content={({ active, payload }) => {
+              if (!active || !payload?.length) return null
+              const entry = payload[0]
+              const p = entry.payload as { month: string; total: number }
+              return (
+                <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs flex flex-col gap-1">
+                  <p className="font-medium">{p.month}</p>
+                  <p className="text-muted-foreground">
+                    {formatNumber(Math.round(p.total), locale)} {currency}
+                  </p>
+                </div>
+              )
+            }}
+          />
+          <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ChartContainer>
+
+      {/* Legend */}
+      <div className="flex flex-col gap-1.5 w-full">
+        {data.map((m) => (
+          <div key={m.month} className="flex items-center gap-2 text-xs">
+            <span className="size-2 shrink-0 rounded-full" style={{ background: "var(--primary)" }} />
+            <span className="flex-1 truncate">{m.month}</span>
+            <span className="tabular-nums font-medium shrink-0">
+              {formatNumber(Math.round(m.total), locale)} {currency}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

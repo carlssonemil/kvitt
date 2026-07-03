@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { UserAvatar } from '@/components/user-avatar'
 import { createExpense } from '@/actions/expense-actions'
-import { formatCurrency } from '@/components/currency'
+import { formatNumber } from '@/components/currency'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import { useTranslations, useLocale } from 'next-intl'
 
@@ -341,7 +341,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                       {included && (
                         <span className="text-muted-foreground tabular-nums text-xs">
                           {equalSelected.size > 0 ? Math.round(100 / equalSelected.size) : 0}%
-                          {amount > 0 && ` (${formatCurrency(equalSplits[m.id] ?? 0)} ${selectedCurrency})`}
+                          {amount > 0 && ` (${formatNumber(equalSplits[m.id] ?? 0, intlLocale)} ${selectedCurrency})`}
                         </span>
                       )}
                     </button>
@@ -379,7 +379,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                   )}
                   {Math.abs(exactRemaining) > 0.01 && (
                     <p className="text-xs text-destructive">
-                      {formatCurrency(exactRemaining)} {selectedCurrency} {t('leftSuffix')}
+                      {formatNumber(exactRemaining, intlLocale)} {selectedCurrency} {t('leftSuffix')}
                     </p>
                   )}
                 </div>
@@ -408,7 +408,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                       </div>
                       {amount > 0 && (
                         <span className="text-xs text-muted-foreground tabular-nums">
-                          ({formatCurrency((parseFloat(percentages[m.id] ?? '0') || 0) / 100 * amount)} {selectedCurrency})
+                          ({formatNumber((parseFloat(percentages[m.id] ?? '0') || 0) / 100 * amount, intlLocale)} {selectedCurrency})
                         </span>
                       )}
                     </div>

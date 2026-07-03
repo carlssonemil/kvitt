@@ -2,13 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import type { GroupStats } from '@/types/database'
-import { formatCurrency } from '@/components/currency'
+import { formatNumber } from '@/components/currency'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { getGroupStatsAction } from '@/actions/group-actions'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface GroupStatsViewProps {
   stats: GroupStats
@@ -66,10 +66,10 @@ function GroupStatsSkeleton() {
   )
 }
 
-function AmountValue({ amount, currency }: { amount: number; currency: string }) {
+function AmountValue({ amount, currency, locale }: { amount: number; currency: string; locale: string }) {
   return (
     <span className="text-xl font-bold tabular-nums">
-      {formatCurrency(Math.round(amount))}{' '}
+      {formatNumber(Math.round(amount), locale)}{' '}
       <span className="text-sm font-normal text-muted-foreground">{currency}</span>
     </span>
   )
@@ -77,6 +77,8 @@ function AmountValue({ amount, currency }: { amount: number; currency: string })
 
 export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
   const t = useTranslations('stats')
+  const locale = useLocale()
+  const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
   const hasData = stats.expense_count > 0
   const splitTotal = stats.payment_split.reduce((sum, p) => sum + p.total, 0)
 
@@ -86,7 +88,7 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('totalExpenses')}</span>
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xl font-bold tabular-nums">{stats.expense_count}</span>
+            <span className="text-xl font-bold tabular-nums">{formatNumber(stats.expense_count, intlLocale)}</span>
             {hasData && stats.this_month_count > 0 && stats.monthly_spending.length > 1 && (
               <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
                 {t('expenseCountThisMonth', { count: stats.this_month_count })}
@@ -97,21 +99,21 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('totalAmount')}</span>
           <div className="flex items-center justify-between gap-2">
-            <AmountValue amount={stats.total_amount} currency={currency} />
+            <AmountValue amount={stats.total_amount} currency={currency} locale={intlLocale} />
             {hasData && stats.this_month_total > 0 && stats.monthly_spending.length > 1 && (
               <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
-                {t('thisMonth', { amount: formatCurrency(Math.round(stats.this_month_total)), currency })}
+                {t('thisMonth', { amount: formatNumber(Math.round(stats.this_month_total), intlLocale), currency })}
               </span>
             )}
           </div>
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('youPaid')}</span>
-          <AmountValue amount={stats.your_paid} currency={currency} />
+          <AmountValue amount={stats.your_paid} currency={currency} locale={intlLocale} />
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('yourShare')}</span>
-          <AmountValue amount={stats.your_share} currency={currency} />
+          <AmountValue amount={stats.your_share} currency={currency} locale={intlLocale} />
         </div>
       </div>
 
@@ -122,21 +124,21 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
       {hasData && stats.payment_split.length > 0 && splitTotal > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
           <p className="text-xs text-muted-foreground font-medium">{t('paymentSplit')}</p>
-          <PaymentSplitChart data={stats.payment_split} currency={currency} />
+          <PaymentSplitChart data={stats.payment_split} currency={currency} locale={intlLocale} />
         </div>
       )}
 
       {hasData && stats.category_spending.length > 0 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
           <p className="text-xs text-muted-foreground font-medium">{t('spendingByCategory')}</p>
-          <CategorySpendingChart data={stats.category_spending} currency={currency} />
+          <CategorySpendingChart data={stats.category_spending} currency={currency} locale={intlLocale} />
         </div>
       )}
 
       {hasData && stats.monthly_spending.length > 1 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
           <p className="text-xs text-muted-foreground font-medium">{t('monthlySpending')}</p>
-          <MonthlySpendingChart data={stats.monthly_spending} currency={currency} />
+          <MonthlySpendingChart data={stats.monthly_spending} currency={currency} locale={intlLocale} />
         </div>
       )}
 
@@ -150,7 +152,7 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
                 <span className="flex-1 truncate">{e.title}</span>
                 {e.count > 1 && <span className="text-muted-foreground shrink-0">{e.count}×</span>}
                 <span className="w-24 shrink-0 text-right font-medium tabular-nums">
-                  {formatCurrency(Math.round(e.total))} {currency}
+                  {formatNumber(Math.round(e.total), intlLocale)} {currency}
                 </span>
               </div>
             ))}

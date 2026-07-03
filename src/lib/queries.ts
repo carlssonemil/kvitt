@@ -148,12 +148,11 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
         title,
         currency,
         date::text AS date,
-        SUM(amount)::float AS daily_total,
-        COUNT(*)::int AS daily_count
+        amount::float AS amount,
+        COUNT(*) OVER (PARTITION BY title)::int AS title_count
       FROM expenses
       WHERE group_id = ${groupId}
-      GROUP BY title, currency, date
-    ` as unknown as Promise<{ title: string; currency: string; date: string; daily_total: number; daily_count: number }[]>,
+    ` as unknown as Promise<{ title: string; currency: string; date: string; amount: number; title_count: number }[]>,
 
     sql`
       SELECT
@@ -252,19 +251,12 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
   }
   const payment_split = [...paymentMap.values()].sort((a, b) => b.total - a.total)
 
-  // Top expenses: sum per title across currencies, take top 5
-  const topMap = new Map<string, { title: string; total: number; count: number }>()
-  for (const r of topRows) {
-    const converted = conv(r.daily_total, r.currency, r.date)
-    const existing = topMap.get(r.title)
-    if (existing) {
-      existing.total = round(existing.total + converted)
-      existing.count += r.daily_count
-    } else {
-      topMap.set(r.title, { title: r.title, total: round(converted), count: r.daily_count })
-    }
-  }
-  const top_expenses = [...topMap.values()].sort((a, b) => b.total - a.total).slice(0, 5)
+  // Top expenses: one-time expenses only (titles that occur exactly once), take top 5
+  const top_expenses = topRows
+    .filter(r => r.title_count === 1)
+    .map(r => ({ title: r.title, total: round(conv(r.amount, r.currency, r.date)), date: r.date }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
 
   // Category spending: sum per category across currencies
   const categoryMap = new Map<string | null, number>()

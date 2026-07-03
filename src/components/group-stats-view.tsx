@@ -179,10 +179,14 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
           <p className="text-xs text-muted-foreground font-medium">{t('topExpenses')}</p>
           <div className="flex flex-col gap-2">
             {stats.top_expenses.map((e, i) => (
-              <div key={e.title} className="flex items-center gap-3 text-xs">
+              <div key={`${e.title}-${e.date}`} className="flex items-center gap-3 text-xs">
                 <span className="w-4 shrink-0 text-muted-foreground tabular-nums">{i + 1}</span>
-                <span className="flex-1 truncate">{e.title}</span>
-                {e.count > 1 && <span className="text-muted-foreground shrink-0">{e.count}×</span>}
+                <span className="flex-1 truncate">
+                  {e.title}
+                  <span className="text-muted-foreground ml-2">
+                    {new Date(e.date).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                </span>
                 <span className="w-24 shrink-0 text-right font-medium tabular-nums">
                   {formatNumber(Math.round(e.total), intlLocale)} {currency}
                 </span>

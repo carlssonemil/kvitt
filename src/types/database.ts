@@ -108,6 +108,6 @@ export interface GroupStats {
   this_month_count: number
   monthly_spending: { month: string; year: number; total: number }[]
   payment_split: { user_id: string; name: string; total: number }[]
-  top_expenses: { title: string; total: number; count: number }[]
+  top_expenses: { title: string; total: number; date: string }[]
   category_spending: { category: string | null; total: number }[]
 }

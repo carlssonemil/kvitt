@@ -190,7 +190,7 @@
     "totalExpenses": "Antal utgifter",
     "totalAmount": "Totalt belopp",
     "thisMonth": "{amount} {currency} den här månaden",
-    "vsLastMonth": "vs förra månaden",
+    "expenseCountThisMonth": "{count} den här månaden",
     "youPaid": "Du betalade",
     "yourShare": "Din andel",
     "noExpenses": "Inga utgifter än",

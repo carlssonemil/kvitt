@@ -190,7 +190,7 @@
     "totalExpenses": "Total expenses",
     "totalAmount": "Total amount",
     "thisMonth": "{amount} {currency} this month",
-    "vsLastMonth": "vs last month",
+    "expenseCountThisMonth": "{count} this month",
     "youPaid": "You paid",
     "yourShare": "Your share",
     "noExpenses": "No expenses yet",

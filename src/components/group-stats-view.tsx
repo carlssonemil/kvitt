@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import type { GroupStats } from '@/types/database'
 import { formatCurrency } from '@/components/currency'
-import { cn } from '@/lib/utils'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
@@ -67,18 +66,6 @@ function GroupStatsSkeleton() {
   )
 }
 
-function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMonth: number; label: string }) {
-  if (thisMonth === 0 && lastMonth === 0) return null
-  if (lastMonth === 0) return null
-  const pct = Math.round(((thisMonth - lastMonth) / lastMonth) * 100)
-  const up = pct >= 0
-  return (
-    <span className={cn('text-xs font-medium', up ? 'text-destructive' : 'text-primary')}>
-      {up ? '▲' : '▼'} {Math.abs(pct)}% {label}
-    </span>
-  )
-}
-
 function AmountValue({ amount, currency }: { amount: number; currency: string }) {
   return (
     <span className="text-xl font-bold tabular-nums">
@@ -98,7 +85,14 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('totalExpenses')}</span>
-          <span className="text-xl font-bold tabular-nums">{stats.expense_count}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xl font-bold tabular-nums">{stats.expense_count}</span>
+            {hasData && stats.this_month_count > 0 && stats.monthly_spending.length > 1 && (
+              <span className="text-xs bg-muted text-muted-foreground rounded px-1.5 py-0.5">
+                {t('expenseCountThisMonth', { count: stats.this_month_count })}
+              </span>
+            )}
+          </div>
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('totalAmount')}</span>
@@ -110,7 +104,6 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
               </span>
             )}
           </div>
-          {hasData && <DeltaBadge thisMonth={stats.this_month_total} lastMonth={stats.last_month_total} label={t('vsLastMonth')} />}
         </div>
         <div className="rounded-lg border px-4 py-3 flex flex-col gap-1">
           <span className="text-xs text-muted-foreground">{t('youPaid')}</span>

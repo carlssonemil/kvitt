@@ -105,7 +105,7 @@ export interface GroupStats {
   your_paid: number
   your_share: number
   this_month_total: number
-  last_month_total: number
+  this_month_count: number
   monthly_spending: { month: string; total: number }[]
   payment_split: { user_id: string; name: string; total: number }[]
   top_expenses: { title: string; total: number; count: number }[]

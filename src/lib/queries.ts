@@ -194,24 +194,21 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
 
   const round = (n: number) => Math.round(n * 100) / 100
 
-  // Date range strings for this-month / last-month filtering
+  // Date range string for this-month filtering
   const now = new Date()
   const thisMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`
-  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1)
-  const lastMonthStart = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}-01`
 
   let expense_count = 0
   let total_amount = 0
   let this_month_total = 0
-  let last_month_total = 0
+  let this_month_count = 0
   for (const r of totalsRows) {
     const converted = conv(r.daily_amount, r.currency, r.date)
     expense_count += r.daily_count
     total_amount += converted
     if (r.date >= thisMonthStart) {
       this_month_total += converted
-    } else if (r.date >= lastMonthStart) {
-      last_month_total += converted
+      this_month_count += r.daily_count
     }
   }
 
@@ -280,7 +277,7 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
     your_paid: round(your_paid),
     your_share: round(your_share),
     this_month_total: round(this_month_total),
-    last_month_total: round(last_month_total),
+    this_month_count,
     monthly_spending,
     payment_split,
     top_expenses,

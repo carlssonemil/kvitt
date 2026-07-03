@@ -18,10 +18,16 @@ interface PaymentSplitChartProps {
   locale: string
 }
 
+// A single hue only reads as distinct across ~6 opacity steps, so beyond
+// that every further slice shares the ramp's final (most transparent) step.
+const RAMP_CAP = 6
+
 function sliceColor(index: number, total: number) {
   // Distribute opacity evenly from 1.0 down to 0.2
   const min = 0.2
-  const opacity = total <= 1 ? 1 : 1 - (index / (total - 1)) * (1 - min)
+  const steps = Math.min(total, RAMP_CAP)
+  const clampedIndex = Math.min(index, RAMP_CAP - 1)
+  const opacity = steps <= 1 ? 1 : 1 - (clampedIndex / (steps - 1)) * (1 - min)
   return `color-mix(in oklch, var(--primary) ${Math.round(opacity * 100)}%, transparent)`
 }
 
@@ -61,7 +67,7 @@ export function PaymentSplitChart({ data, currency, locale }: PaymentSplitChartP
           />
           <Pie data={chartData} dataKey="total" nameKey="name" innerRadius={50} outerRadius={80}>
             {chartData.map((entry) => (
-              <Cell key={entry.user_id} fill={entry.fill} />
+              <Cell key={entry.user_id} fill={entry.fill} stroke="var(--background)" strokeWidth={1} />
             ))}
           </Pie>
         </PieChart>
@@ -149,7 +155,7 @@ export function CategorySpendingChart({ data, currency, locale }: CategorySpendi
           />
           <Pie data={chartData} dataKey="total" nameKey="label" innerRadius={50} outerRadius={80}>
             {chartData.map((entry, i) => (
-              <Cell key={i} fill={entry.fill} />
+              <Cell key={i} fill={entry.fill} stroke="var(--background)" strokeWidth={1} />
             ))}
           </Pie>
         </PieChart>

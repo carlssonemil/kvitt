@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
-import { Spinner } from '@/components/ui/spinner'
+import { Skeleton } from '@/components/ui/skeleton'
 import { getGroupStatsAction } from '@/actions/group-actions'
 import { useTranslations } from 'next-intl'
 
@@ -40,14 +40,31 @@ export function GroupStatsTab({ groupId, currency }: GroupStatsTabProps) {
   }
 
   if (!stats) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Spinner className="size-5 text-muted-foreground" />
-      </div>
-    )
+    return <GroupStatsSkeleton />
   }
 
   return <GroupStatsView stats={stats} currency={currency} />
+}
+
+function GroupStatsSkeleton() {
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-2 gap-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-lg border px-4 py-3 flex flex-col gap-2">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-6 w-24" />
+          </div>
+        ))}
+      </div>
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="rounded-lg border p-4 flex flex-col gap-3">
+          <Skeleton className="h-3 w-32" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      ))}
+    </div>
+  )
 }
 
 function DeltaBadge({ thisMonth, lastMonth, label }: { thisMonth: number; lastMonth: number; label: string }) {

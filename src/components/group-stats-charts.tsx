@@ -192,48 +192,33 @@ const monthlyChartConfig = {
 
 export function MonthlySpendingChart({ data, currency, locale }: MonthlySpendingChartProps) {
   return (
-    <div className="flex flex-col items-center gap-4">
-      <ChartContainer config={monthlyChartConfig} className="h-[180px] w-full">
-        <BarChart accessibilityLayer data={data} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
-          <CartesianGrid vertical={false} stroke="var(--border)" />
-          <XAxis
-            dataKey="month"
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-          />
-          <ChartTooltip
-            cursor={false}
-            content={({ active, payload }) => {
-              if (!active || !payload?.length) return null
-              const entry = payload[0]
-              const p = entry.payload as { month: string; total: number }
-              return (
-                <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs flex flex-col gap-1">
-                  <p className="font-medium">{p.month}</p>
-                  <p className="text-muted-foreground">
-                    {formatNumber(Math.round(p.total), locale)} {currency}
-                  </p>
-                </div>
-              )
-            }}
-          />
-          <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
-        </BarChart>
-      </ChartContainer>
-
-      {/* Legend */}
-      <div className="flex flex-col gap-1.5 w-full">
-        {data.map((m) => (
-          <div key={m.month} className="flex items-center gap-2 text-xs">
-            <span className="size-2 shrink-0 rounded-full" style={{ background: "var(--primary)" }} />
-            <span className="flex-1 truncate">{m.month}</span>
-            <span className="tabular-nums font-medium shrink-0">
-              {formatNumber(Math.round(m.total), locale)} {currency}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
+    <ChartContainer config={monthlyChartConfig} className="h-[180px] w-full">
+      <BarChart accessibilityLayer data={data} margin={{ left: 0, right: 0, top: 4, bottom: 0 }}>
+        <CartesianGrid vertical={false} stroke="var(--border)" />
+        <XAxis
+          dataKey="month"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={({ active, payload }) => {
+            if (!active || !payload?.length) return null
+            const entry = payload[0]
+            const p = entry.payload as { month: string; total: number }
+            return (
+              <div className="rounded-lg border bg-background px-3 py-2 shadow-md text-xs flex flex-col gap-1">
+                <p className="font-medium">{p.month}</p>
+                <p className="text-muted-foreground">
+                  {formatNumber(Math.round(p.total), locale)} {currency}
+                </p>
+              </div>
+            )
+          }}
+        />
+        <Bar dataKey="total" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+      </BarChart>
+    </ChartContainer>
   )
 }

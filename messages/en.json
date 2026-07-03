@@ -197,6 +197,8 @@
     "paymentSplit": "Payment split",
     "spendingByCategory": "Spending by category",
     "monthlySpending": "Monthly spending",
+    "monthlyAverage": "{amount} {currency} avg/month",
+    "allYears": "All years",
     "topExpenses": "Top expenses"
   },
   "groupSettings": {

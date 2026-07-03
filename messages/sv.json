@@ -197,6 +197,8 @@
     "paymentSplit": "Betalningsfördelning",
     "spendingByCategory": "Utgifter per kategori",
     "monthlySpending": "Månadsutgifter",
+    "monthlyAverage": "{amount} {currency} snitt/månad",
+    "allYears": "Alla år",
     "topExpenses": "Största utgifter"
   },
   "groupSettings": {

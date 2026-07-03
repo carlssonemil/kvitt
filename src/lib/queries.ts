@@ -120,15 +120,15 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
     sql`
       SELECT
         to_char(date_trunc('month', date), 'Mon YYYY') AS month,
+        EXTRACT(YEAR FROM date)::int AS year,
         currency,
         date::text AS date,
         SUM(amount)::float AS daily_total
       FROM expenses
       WHERE group_id = ${groupId}
-        AND date >= date_trunc('month', CURRENT_DATE) - interval '5 months'
       GROUP BY date_trunc('month', date), currency, date
       ORDER BY date_trunc('month', date)
-    ` as unknown as Promise<{ month: string; currency: string; date: string; daily_total: number }[]>,
+    ` as unknown as Promise<{ month: string; year: number; currency: string; date: string; daily_total: number }[]>,
 
     sql`
       SELECT
@@ -224,13 +224,18 @@ export async function getGroupStats(groupId: string, userId: string, groupCurren
 
   // Monthly spending: preserve SQL month order, sum across currencies per month
   const monthlyMap = new Map<string, number>()
+  const monthYearMap = new Map<string, number>()
   const monthOrder: string[] = []
   for (const r of monthlyRows) {
-    if (!monthlyMap.has(r.month)) monthOrder.push(r.month)
+    if (!monthlyMap.has(r.month)) {
+      monthOrder.push(r.month)
+      monthYearMap.set(r.month, r.year)
+    }
     monthlyMap.set(r.month, (monthlyMap.get(r.month) ?? 0) + conv(r.daily_total, r.currency, r.date))
   }
   const monthly_spending = monthOrder.map(month => ({
     month,
+    year: monthYearMap.get(month) ?? 0,
     total: round(monthlyMap.get(month) ?? 0),
   }))
 

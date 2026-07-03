@@ -7,6 +7,7 @@ import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '
 import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getGroupStatsAction } from '@/actions/group-actions'
 import { useTranslations, useLocale } from 'next-intl'
 
@@ -82,6 +83,15 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
   const hasData = stats.expense_count > 0
   const splitTotal = stats.payment_split.reduce((sum, p) => sum + p.total, 0)
 
+  const monthlyYears = [...new Set(stats.monthly_spending.map(m => m.year))].sort((a, b) => b - a)
+  const [yearFilter, setYearFilter] = useState<string>(monthlyYears[0] !== undefined ? String(monthlyYears[0]) : 'all')
+  const monthlySpending = yearFilter === 'all'
+    ? stats.monthly_spending
+    : stats.monthly_spending.filter(m => m.year === Number(yearFilter))
+  const monthlyAverage = monthlySpending.length > 0
+    ? monthlySpending.reduce((sum, m) => sum + m.total, 0) / monthlySpending.length
+    : 0
+
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-3">
@@ -137,8 +147,30 @@ export function GroupStatsView({ stats, currency }: GroupStatsViewProps) {
 
       {hasData && stats.monthly_spending.length > 1 && (
         <div className="rounded-lg border p-4 flex flex-col gap-3">
-          <p className="text-xs text-muted-foreground font-medium">{t('monthlySpending')}</p>
-          <MonthlySpendingChart data={stats.monthly_spending} currency={currency} locale={intlLocale} />
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex flex-col gap-1">
+              <p className="text-xs text-muted-foreground font-medium">{t('monthlySpending')}</p>
+              {monthlyAverage > 0 && (
+                <span className="text-xs w-fit bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded px-1.5 py-0.5">
+                  {t('monthlyAverage', { amount: formatNumber(Math.round(monthlyAverage), intlLocale), currency })}
+                </span>
+              )}
+            </div>
+            {monthlyYears.length > 1 && (
+              <Select value={yearFilter} onValueChange={setYearFilter}>
+                <SelectTrigger size="sm" className="w-auto">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t('allYears')}</SelectItem>
+                  {monthlyYears.map(year => (
+                    <SelectItem key={year} value={String(year)}>{year}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
+          <MonthlySpendingChart data={monthlySpending} currency={currency} locale={intlLocale} />
         </div>
       )}
 

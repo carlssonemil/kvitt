@@ -18,6 +18,7 @@ import { createExpense } from '@/actions/expense-actions'
 import { formatNumber } from '@/components/currency'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import { useTranslations, useLocale } from 'next-intl'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 interface Member {
   id: string
@@ -54,6 +55,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
   const tcat = useTranslations('categories')
   const locale = useLocale()
   const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
+  const shouldReduceMotion = useReducedMotion()
 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
 
@@ -317,117 +319,146 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
               </Select>
             </div>
 
-            {splitType === 'equal' && (
-              <div className="flex flex-col gap-0.5">
-                {members.map(m => {
-                  const included = equalSelected.has(m.id)
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      role="checkbox"
-                      aria-checked={included}
-                      onClick={() => toggleMember(m.id)}
-                      disabled={isPending}
-                      className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted"
-                    >
-                      <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
-                        included ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
-                      }`}>
-                        {included && <CheckIcon className="size-3" />}
-                      </div>
-                      <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                      <span className="flex-1 text-left">{m.display_name}</span>
-                      {included && (
-                        <span className="text-muted-foreground tabular-nums text-xs">
-                          {equalSelected.size > 0 ? Math.round(100 / equalSelected.size) : 0}%
-                          {amount > 0 && ` (${formatNumber(equalSplits[m.id] ?? 0, intlLocale)} ${selectedCurrency})`}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-
-            {splitType === 'exact' && (
-              <div className="flex flex-col gap-2">
-                {members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3">
-                    <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                    <span className="text-sm flex-1">{m.display_name}</span>
-                    <div className="flex items-center gap-1.5">
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0"
-                        className="w-20"
-                        value={exactAmounts[m.id] ?? ''}
-                        onChange={e => setExactAmounts(prev => ({ ...prev, [m.id]: e.target.value }))}
-                        disabled={isPending}
-                      />
-                      <span className="text-xs text-muted-foreground w-8">{selectedCurrency}</span>
-                    </div>
-                  </div>
-                ))}
-                <div className="flex items-center justify-end gap-2">
-                  {exactEmptyIds.length > 0 && exactRemaining > 0.01 && (
-                    <Button type="button" variant="outline" size="sm" onClick={distributeExactRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                      {t('splitRemaining')}
-                    </Button>
-                  )}
-                  {Math.abs(exactRemaining) > 0.01 && (
-                    <p className="text-xs text-destructive">
-                      {formatNumber(exactRemaining, intlLocale)} {selectedCurrency} {t('leftSuffix')}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {splitType === 'percentage' && (
-              <div className="flex flex-col gap-2">
-                {members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3">
-                    <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                    <span className="text-sm flex-1">{m.display_name}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-1 w-20">
-                        <Input
-                          type="number"
-                          step="1"
-                          min="0"
-                          max="100"
-                          placeholder="0"
-                          value={percentages[m.id] ?? ''}
-                          onChange={e => setPercentages(prev => ({ ...prev, [m.id]: e.target.value }))}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={splitType}
+                layout
+                initial={{ opacity: 0, filter: 'blur(2px)' }}
+                animate={{ opacity: 1, filter: 'blur(0px)' }}
+                exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: 'blur(2px)' }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              >
+                {splitType === 'equal' && (
+                  <div className="flex flex-col gap-0.5">
+                    {members.map(m => {
+                      const included = equalSelected.has(m.id)
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          role="checkbox"
+                          aria-checked={included}
+                          onClick={() => toggleMember(m.id)}
                           disabled={isPending}
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
+                          className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted"
+                        >
+                          <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
+                            included ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
+                          }`}>
+                            {included && <CheckIcon className="size-3" />}
+                          </div>
+                          <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                          <span className="flex-1 text-left">{m.display_name}</span>
+                          {included && (
+                            <span className="text-muted-foreground tabular-nums text-xs">
+                              {equalSelected.size > 0 ? Math.round(100 / equalSelected.size) : 0}%
+                              {amount > 0 && ` (${formatNumber(equalSplits[m.id] ?? 0, intlLocale)} ${selectedCurrency})`}
+                            </span>
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {splitType === 'exact' && (
+                  <div className="flex flex-col gap-2">
+                    {members.map(m => (
+                      <div key={m.id} className="flex items-center gap-3">
+                        <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                        <span className="text-sm flex-1">{m.display_name}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            placeholder="0"
+                            className="w-20"
+                            value={exactAmounts[m.id] ?? ''}
+                            onChange={e => setExactAmounts(prev => ({ ...prev, [m.id]: e.target.value }))}
+                            disabled={isPending}
+                          />
+                          <span className="text-xs text-muted-foreground w-8">{selectedCurrency}</span>
+                        </div>
                       </div>
-                      {amount > 0 && (
-                        <span className="text-xs text-muted-foreground tabular-nums">
-                          ({formatNumber((parseFloat(percentages[m.id] ?? '0') || 0) / 100 * amount, intlLocale)} {selectedCurrency})
-                        </span>
+                    ))}
+                    <div className="flex items-center justify-end gap-2">
+                      {exactEmptyIds.length > 0 && exactRemaining > 0.01 && (
+                        <Button type="button" variant="outline" size="sm" onClick={distributeExactRemaining} className="h-6 rounded-full px-2.5 text-xs">
+                          {t('splitRemaining')}
+                        </Button>
                       )}
+                      <AnimatePresence initial={false}>
+                        {Math.abs(exactRemaining) > 0.01 && (
+                          <motion.p
+                            key="exact-remaining"
+                            className="text-xs text-destructive"
+                            initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                            exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                            transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                          >
+                            {formatNumber(exactRemaining, intlLocale)} {selectedCurrency} {t('leftSuffix')}
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
                     </div>
                   </div>
-                ))}
-                <div className="flex items-center justify-end gap-2">
-                  {pctEmptyIds.length > 0 && pctRemaining > 0.01 && (
-                    <Button type="button" variant="outline" size="sm" onClick={distributePctRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                      {t('splitRemaining')}
-                    </Button>
-                  )}
-                  {Math.abs(pctRemaining) > 0.01 && (
-                    <p className="text-xs text-destructive">
-                      {pctRemaining % 1 !== 0 ? pctRemaining.toFixed(1) : pctRemaining.toFixed(0)}% left
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
+                )}
+
+                {splitType === 'percentage' && (
+                  <div className="flex flex-col gap-2">
+                    {members.map(m => (
+                      <div key={m.id} className="flex items-center gap-3">
+                        <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                        <span className="text-sm flex-1">{m.display_name}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 w-20">
+                            <Input
+                              type="number"
+                              step="1"
+                              min="0"
+                              max="100"
+                              placeholder="0"
+                              value={percentages[m.id] ?? ''}
+                              onChange={e => setPercentages(prev => ({ ...prev, [m.id]: e.target.value }))}
+                              disabled={isPending}
+                            />
+                            <span className="text-sm text-muted-foreground">%</span>
+                          </div>
+                          {amount > 0 && (
+                            <span className="text-xs text-muted-foreground tabular-nums">
+                              ({formatNumber((parseFloat(percentages[m.id] ?? '0') || 0) / 100 * amount, intlLocale)} {selectedCurrency})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-end gap-2">
+                      {pctEmptyIds.length > 0 && pctRemaining > 0.01 && (
+                        <Button type="button" variant="outline" size="sm" onClick={distributePctRemaining} className="h-6 rounded-full px-2.5 text-xs">
+                          {t('splitRemaining')}
+                        </Button>
+                      )}
+                      <AnimatePresence initial={false}>
+                        {Math.abs(pctRemaining) > 0.01 && (
+                          <motion.p
+                            key="pct-remaining"
+                            className="text-xs text-destructive"
+                            initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                            exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                            transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                          >
+                            {pctRemaining % 1 !== 0 ? pctRemaining.toFixed(1) : pctRemaining.toFixed(0)}% left
+                          </motion.p>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           <DialogFooter>

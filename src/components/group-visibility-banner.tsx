@@ -32,12 +32,16 @@ export function GroupVisibilityBanner({ groupId, hidden }: GroupVisibilityBanner
   }
 
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 mt-3">
-      <p className="text-sm text-muted-foreground">{hidden ? t('hiddenNotice') : t('inactiveHintBody')}</p>
-      <Button variant="outline" size="sm" className="shrink-0 self-start sm:self-auto" onClick={handleToggle} disabled={isPending}>
-        {hidden ? <ArchiveRestoreIcon className="size-3.5" /> : <ArchiveIcon className="size-3.5" />}
-        {hidden ? ts('unhideGroup') : ts('hideGroup')}
-      </Button>
+    <div className="grid transition-[grid-template-rows] duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] grid-rows-[1fr] starting:grid-rows-[0fr] mt-3">
+      <div className="overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border bg-muted/30 px-3 py-2.5 opacity-100 transition-opacity duration-200 ease-[cubic-bezier(0.23,1,0.32,1)] starting:opacity-0">
+          <p className="text-sm text-muted-foreground">{hidden ? t('hiddenNotice') : t('inactiveHintBody')}</p>
+          <Button variant="outline" size="sm" className="shrink-0 self-start sm:self-auto" onClick={handleToggle} disabled={isPending}>
+            {hidden ? <ArchiveRestoreIcon className="size-3.5" /> : <ArchiveIcon className="size-3.5" />}
+            {hidden ? ts('unhideGroup') : ts('hideGroup')}
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }

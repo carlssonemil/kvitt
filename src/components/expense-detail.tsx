@@ -21,6 +21,7 @@ import { deleteExpense, updateExpense } from '@/actions/expense-actions'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import type { ExpenseWithPayer } from '@/types/database'
 import { useTranslations, useLocale } from 'next-intl'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
 interface Member {
   id: string
@@ -53,6 +54,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const [isEditing, setIsEditing] = useState(false)
+  const shouldReduceMotion = useReducedMotion()
   const t = useTranslations('expense')
   const tc = useTranslations('common')
   const tcat = useTranslations('categories')
@@ -205,228 +207,16 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
     </div>
   )
 
-  if (isEditing) {
-    const footer = (
-      <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
-        <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setIsEditing(false)} disabled={isPending}>
-          {tc('cancel')}
-        </Button>
-        <Button type="submit" form="expense-edit-form" className="flex-1 sm:flex-none" disabled={isPending}>
-          {isPending ? t('saving') : t('save')}
-        </Button>
-      </div>
-    )
-
-    return (
-      <ResponsiveDialog open={open} onOpenChange={handleOpenChange} title={t('editTitle')} footer={footer}>
-        <form id="expense-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-exp-title">{t('titleLabel')}</Label>
-            <Input id="edit-exp-title" name="title" required defaultValue={expense.title} disabled={isPending} autoFocus />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="edit-exp-amount">{t('amountLabel')}</Label>
-              <Input
-                id="edit-exp-amount"
-                name="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                required
-                placeholder="0.00"
-                value={amountStr}
-                onChange={e => setAmountStr(e.target.value)}
-                disabled={isPending}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('currencyLabel')}</Label>
-              <Select value={selectedCurrency} onValueChange={setSelectedCurrency} disabled={isPending}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {[...SUPPORTED_CURRENCIES].sort().map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('paidByLabel')}</Label>
-              <Select value={paidBy} onValueChange={setPaidBy} disabled={isPending}>
-                <SelectTrigger className="w-full">
-                  {(() => {
-                    const m = members.find(m => m.id === paidBy)
-                    return m ? (
-                      <div className="flex items-center gap-2">
-                        <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                        <span>{m.display_name}</span>
-                      </div>
-                    ) : <SelectValue />
-                  })()}
-                </SelectTrigger>
-                <SelectContent>
-                  {[...members].sort((a, b) => a.display_name.localeCompare(b.display_name)).map(m => (
-                    <SelectItem key={m.id} value={m.id}>
-                      <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                      {m.display_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>{t('dateLabel')}</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start font-normal" disabled={isPending}>
-                    <CalendarIcon className="size-4 mr-2 shrink-0" />
-                    {selectedDate.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={date => date && setSelectedDate(date)}
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="edit-exp-note">
-              {t('noteLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
-            </Label>
-            <Input id="edit-exp-note" name="note" placeholder={t('notePlaceholder')} defaultValue={expense.note ?? ''} disabled={isPending} />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>
-              {t('categoryLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
-            </Label>
-            <Select value={category ?? 'none'} onValueChange={v => setCategory(v === 'none' ? null : v)} disabled={isPending}>
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t('noCategory')}</SelectItem>
-                {[...EXPENSE_CATEGORIES].sort((a, b) => tcat(a.key).localeCompare(tcat(b.key), intlLocale)).map(({ key, icon: Icon }) => (
-                  <SelectItem key={key} value={key}>
-                    <Icon className="size-4" />
-                    {tcat(key)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Separator />
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label>{t('splitLabel')}</Label>
-              <Select value={splitType} onValueChange={v => setSplitType(v as SplitType)} disabled={isPending}>
-                <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="equal">{t('splitEqual')}</SelectItem>
-                  <SelectItem value="exact">{t('splitExact')}</SelectItem>
-                  <SelectItem value="percentage">{t('splitPercentage')}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {splitType === 'equal' && (
-              <div className="flex flex-col gap-0.5">
-                {members.map(m => {
-                  const included = equalSelected.has(m.id)
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      role="checkbox"
-                      aria-checked={included}
-                      onClick={() => toggleMember(m.id)}
-                      disabled={isPending}
-                      className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted"
-                    >
-                      <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
-                        included ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
-                      }`} aria-hidden="true">
-                        {included && <CheckIcon className="size-3" />}
-                      </div>
-                      <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                      <span className="flex-1 text-left">{m.display_name}</span>
-                      {included && (
-                        <span className="text-muted-foreground tabular-nums text-xs">
-                          {equalSelected.size > 0 ? Math.round(100 / equalSelected.size) : 0}%
-                          {amount > 0 && ` · ${(equalSplits[m.id] ?? 0).toFixed(2)} ${selectedCurrency}`}
-                        </span>
-                      )}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-
-            {splitType === 'exact' && (
-              <div className="flex flex-col gap-2">
-                {members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3">
-                    <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                    <span className="text-sm flex-1">{m.display_name}</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      className="w-28"
-                      value={exactAmounts[m.id] ?? ''}
-                      onChange={e => setExactAmounts(prev => ({ ...prev, [m.id]: e.target.value }))}
-                      disabled={isPending}
-                    />
-                  </div>
-                ))}
-                <p className={`text-xs ${Math.abs(exactRemaining) > 0.01 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {t('exactRemaining', { remaining: exactRemaining.toFixed(2), currency: selectedCurrency })}
-                </p>
-              </div>
-            )}
-
-            {splitType === 'percentage' && (
-              <div className="flex flex-col gap-2">
-                {members.map(m => (
-                  <div key={m.id} className="flex items-center gap-3">
-                    <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
-                    <span className="text-sm flex-1">{m.display_name}</span>
-                    <div className="flex items-center gap-1 w-28">
-                      <Input
-                        type="number"
-                        step="1"
-                        min="0"
-                        max="100"
-                        placeholder="0"
-                        value={percentages[m.id] ?? ''}
-                        onChange={e => setPercentages(prev => ({ ...prev, [m.id]: e.target.value }))}
-                        disabled={isPending}
-                      />
-                      <span className="text-sm text-muted-foreground">%</span>
-                    </div>
-                  </div>
-                ))}
-                <p className={`text-xs ${Math.abs(pctRemaining) > 0.01 ? 'text-destructive' : 'text-muted-foreground'}`}>
-                  {t('pctRemaining', { remaining: pctRemaining.toFixed(1) })}
-                </p>
-              </div>
-            )}
-          </div>
-        </form>
-      </ResponsiveDialog>
-    )
-  }
-
-  const footer = (
+  const footer = isEditing ? (
+    <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
+      <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setIsEditing(false)} disabled={isPending}>
+        {tc('cancel')}
+      </Button>
+      <Button type="submit" form="expense-edit-form" className="flex-1 sm:flex-none" disabled={isPending}>
+        {isPending ? t('saving') : t('save')}
+      </Button>
+    </div>
+  ) : (
     <div className="flex gap-2 w-full sm:w-auto sm:ml-auto">
       <Button variant="outline" className="flex-1 sm:flex-none" onClick={enterEdit} disabled={isPending}>
         <PencilIcon className="size-4" />
@@ -453,59 +243,308 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
     <ResponsiveDialog
       open={open}
       onOpenChange={handleOpenChange}
-      title={title}
+      title={isEditing ? t('editTitle') : title}
       footer={footer}
     >
-      <div className="flex flex-col gap-4">
-        <div className="flex flex-col gap-3 text-sm">
-          <div className="flex gap-10">
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">{t('amountLabel')}</span>
-              <Currency amount={Number(expense.amount)} currency={expense.currency} className="font-semibold" />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">{t('categoryLabel')}</span>
-              <span className="flex items-center gap-1.5">
-                <CategoryIcon className="size-3.5 text-muted-foreground" />
-                {categoryLabel}
-              </span>
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">{t('dateLabel')}</span>
-              <span>{new Date(expense.date).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })}</span>
-            </div>
-          </div>
-          {expense.note && (
-            <div className="flex flex-col gap-0.5">
-              <span className="text-xs text-muted-foreground">{t('noteLabel')}</span>
-              <span>{expense.note}</span>
-            </div>
-          )}
-        </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={isEditing ? 'edit' : 'view'}
+          initial={{ opacity: 0, filter: 'blur(2px)' }}
+          animate={{ opacity: 1, filter: 'blur(0px)' }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: 'blur(2px)' }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {isEditing ? (
+            <form id="expense-edit-form" onSubmit={handleSave} className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="edit-exp-title">{t('titleLabel')}</Label>
+                <Input id="edit-exp-title" name="title" required defaultValue={expense.title} disabled={isPending} autoFocus />
+              </div>
 
-        {expense.splits.length > 0 && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-2">{t('splitBetween')}</p>
-            <div className="flex flex-col gap-1.5">
-              {expense.splits.map(split => (
-                <div key={split.id} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <UserAvatar name={split.user_display_name} avatarUrl={split.user_avatar} size="xs" />
-                    <span className="text-sm">
-                      {split.user_id === currentUserId ? tc('you') : split.user_display_name}
-                    </span>
-                  </div>
-                  <Currency
-                    amount={Number(split.amount)}
-                    currency={expense.currency}
-                    className="text-sm text-muted-foreground"
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="edit-exp-amount">{t('amountLabel')}</Label>
+                  <Input
+                    id="edit-exp-amount"
+                    name="amount"
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    required
+                    placeholder="0.00"
+                    value={amountStr}
+                    onChange={e => setAmountStr(e.target.value)}
+                    disabled={isPending}
                   />
                 </div>
-              ))}
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t('currencyLabel')}</Label>
+                  <Select value={selectedCurrency} onValueChange={setSelectedCurrency} disabled={isPending}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {[...SUPPORTED_CURRENCIES].sort().map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t('paidByLabel')}</Label>
+                  <Select value={paidBy} onValueChange={setPaidBy} disabled={isPending}>
+                    <SelectTrigger className="w-full">
+                      {(() => {
+                        const m = members.find(m => m.id === paidBy)
+                        return m ? (
+                          <div className="flex items-center gap-2">
+                            <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                            <span>{m.display_name}</span>
+                          </div>
+                        ) : <SelectValue />
+                      })()}
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[...members].sort((a, b) => a.display_name.localeCompare(b.display_name)).map(m => (
+                        <SelectItem key={m.id} value={m.id}>
+                          <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                          {m.display_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label>{t('dateLabel')}</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start font-normal" disabled={isPending}>
+                        <CalendarIcon className="size-4 mr-2 shrink-0" />
+                        {selectedDate.toLocaleDateString(intlLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={date => date && setSelectedDate(date)}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="edit-exp-note">
+                  {t('noteLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
+                </Label>
+                <Input id="edit-exp-note" name="note" placeholder={t('notePlaceholder')} defaultValue={expense.note ?? ''} disabled={isPending} />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label>
+                  {t('categoryLabel')} <span className="text-muted-foreground font-normal">{tc('optional')}</span>
+                </Label>
+                <Select value={category ?? 'none'} onValueChange={v => setCategory(v === 'none' ? null : v)} disabled={isPending}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t('noCategory')}</SelectItem>
+                    {[...EXPENSE_CATEGORIES].sort((a, b) => tcat(a.key).localeCompare(tcat(b.key), intlLocale)).map(({ key, icon: Icon }) => (
+                      <SelectItem key={key} value={key}>
+                        <Icon className="size-4" />
+                        {tcat(key)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Separator />
+
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <Label>{t('splitLabel')}</Label>
+                  <Select value={splitType} onValueChange={v => setSplitType(v as SplitType)} disabled={isPending}>
+                    <SelectTrigger className="w-36"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="equal">{t('splitEqual')}</SelectItem>
+                      <SelectItem value="exact">{t('splitExact')}</SelectItem>
+                      <SelectItem value="percentage">{t('splitPercentage')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={splitType}
+                    layout
+                    initial={{ opacity: 0, filter: 'blur(2px)' }}
+                    animate={{ opacity: 1, filter: 'blur(0px)' }}
+                    exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, filter: 'blur(2px)' }}
+                    transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+                  >
+                    {splitType === 'equal' && (
+                      <div className="flex flex-col gap-0.5">
+                        {members.map(m => {
+                          const included = equalSelected.has(m.id)
+                          return (
+                            <button
+                              key={m.id}
+                              type="button"
+                              role="checkbox"
+                              aria-checked={included}
+                              onClick={() => toggleMember(m.id)}
+                              disabled={isPending}
+                              className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted"
+                            >
+                              <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
+                                included ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
+                              }`} aria-hidden="true">
+                                {included && <CheckIcon className="size-3" />}
+                              </div>
+                              <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                              <span className="flex-1 text-left">{m.display_name}</span>
+                              {included && (
+                                <span className="text-muted-foreground tabular-nums text-xs">
+                                  {equalSelected.size > 0 ? Math.round(100 / equalSelected.size) : 0}%
+                                  {amount > 0 && ` · ${(equalSplits[m.id] ?? 0).toFixed(2)} ${selectedCurrency}`}
+                                </span>
+                              )}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    {splitType === 'exact' && (
+                      <div className="flex flex-col gap-2">
+                        {members.map(m => (
+                          <div key={m.id} className="flex items-center gap-3">
+                            <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                            <span className="text-sm flex-1">{m.display_name}</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              placeholder="0.00"
+                              className="w-28"
+                              value={exactAmounts[m.id] ?? ''}
+                              onChange={e => setExactAmounts(prev => ({ ...prev, [m.id]: e.target.value }))}
+                              disabled={isPending}
+                            />
+                          </div>
+                        ))}
+                        <AnimatePresence initial={false}>
+                          {Math.abs(exactRemaining) > 0.01 && (
+                            <motion.p
+                              key="exact-remaining"
+                              className="text-xs text-destructive"
+                              initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                              animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                              exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                              transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                            >
+                              {t('exactRemaining', { remaining: exactRemaining.toFixed(2), currency: selectedCurrency })}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+
+                    {splitType === 'percentage' && (
+                      <div className="flex flex-col gap-2">
+                        {members.map(m => (
+                          <div key={m.id} className="flex items-center gap-3">
+                            <UserAvatar name={m.display_name} avatarUrl={m.avatar_url} size="xs" />
+                            <span className="text-sm flex-1">{m.display_name}</span>
+                            <div className="flex items-center gap-1 w-28">
+                              <Input
+                                type="number"
+                                step="1"
+                                min="0"
+                                max="100"
+                                placeholder="0"
+                                value={percentages[m.id] ?? ''}
+                                onChange={e => setPercentages(prev => ({ ...prev, [m.id]: e.target.value }))}
+                                disabled={isPending}
+                              />
+                              <span className="text-sm text-muted-foreground">%</span>
+                            </div>
+                          </div>
+                        ))}
+                        <AnimatePresence initial={false}>
+                          {Math.abs(pctRemaining) > 0.01 && (
+                            <motion.p
+                              key="pct-remaining"
+                              className="text-xs text-destructive"
+                              initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                              animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                              exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                              transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                            >
+                              {t('pctRemaining', { remaining: pctRemaining.toFixed(1) })}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+            </form>
+          ) : (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-3 text-sm">
+                <div className="flex gap-10">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground">{t('amountLabel')}</span>
+                    <Currency amount={Number(expense.amount)} currency={expense.currency} className="font-semibold" />
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground">{t('categoryLabel')}</span>
+                    <span className="flex items-center gap-1.5">
+                      <CategoryIcon className="size-3.5 text-muted-foreground" />
+                      {categoryLabel}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground">{t('dateLabel')}</span>
+                    <span>{new Date(expense.date).toLocaleDateString(intlLocale, { month: 'short', day: 'numeric' })}</span>
+                  </div>
+                </div>
+                {expense.note && (
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-xs text-muted-foreground">{t('noteLabel')}</span>
+                    <span>{expense.note}</span>
+                  </div>
+                )}
+              </div>
+
+              {expense.splits.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-2">{t('splitBetween')}</p>
+                  <div className="flex flex-col gap-1.5">
+                    {expense.splits.map(split => (
+                      <div key={split.id} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <UserAvatar name={split.user_display_name} avatarUrl={split.user_avatar} size="xs" />
+                          <span className="text-sm">
+                            {split.user_id === currentUserId ? tc('you') : split.user_display_name}
+                          </span>
+                        </div>
+                        <Currency
+                          amount={Number(split.amount)}
+                          currency={expense.currency}
+                          className="text-sm text-muted-foreground"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </ResponsiveDialog>
   )
 }

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
@@ -144,6 +144,7 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
   const t = useTranslations('expenseList')
   const tc = useTranslations('categories')
   const intlLocale = locale === 'sv' ? 'sv-SE' : 'en-US'
+  const shouldReduceMotion = useReducedMotion()
 
   const [typeFilter, setTypeFilter] = useState<'all' | 'expense' | 'settlement'>('all')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
@@ -301,9 +302,18 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
       lastMonth = month
     }
     rows.push(
-      item.kind === 'expense'
-        ? <ExpenseRow key={item.data.id} expense={item.data} groupId={groupId} currentUserId={currentUserId} members={members} locale={locale} />
-        : <SettlementRow key={item.data.id} settlement={item.data} groupId={groupId} currency={currency} currentUserId={currentUserId} members={members} locale={locale} />
+      <motion.div
+        key={item.data.id}
+        layout="position"
+        initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-6px)' }}
+        animate={{ opacity: 1, transform: 'translateY(0px)' }}
+        exit={{ opacity: 0, transform: 'translateY(0px)', transition: { duration: 0.16, ease: [0.23, 1, 0.32, 1] } }}
+        transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+      >
+        {item.kind === 'expense'
+          ? <ExpenseRow expense={item.data} groupId={groupId} currentUserId={currentUserId} members={members} locale={locale} />
+          : <SettlementRow settlement={item.data} groupId={groupId} currency={currency} currentUserId={currentUserId} members={members} locale={locale} />}
+      </motion.div>
     )
   }
 
@@ -425,7 +435,11 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
           icon={ReceiptIcon}
           title={t('noMatch.title')}
         />
-      ) : rows}
+      ) : (
+        <AnimatePresence initial={false}>
+          {rows}
+        </AnimatePresence>
+      )}
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="flex items-center justify-center h-8">

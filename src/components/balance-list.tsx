@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { useTranslations } from 'next-intl'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface Member {
   id: string
@@ -130,18 +131,36 @@ export function BalanceList({ balances, members, groupId, groupCurrency, current
             description={t('youDontOweDesc')}
           />
         ) : (
-          iOwe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp currentUserId={currentUserId} />
-          ))
+          <AnimatePresence initial={false}>
+            {iOwe.map(balance => (
+              <motion.div
+                key={`${balance.from_user_id}-${balance.to_user_id}`}
+                layout="position"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <BalanceRow balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp currentUserId={currentUserId} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         )}
       </div>
 
       {owedToMe.length > 0 && (
         <div className="flex flex-col gap-2">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('owedToYouLabel')}</p>
-          {owedToMe.map((balance, i) => (
-            <BalanceRow key={i} balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp shortenTo currentUserId={currentUserId} />
-          ))}
+          <AnimatePresence initial={false}>
+            {owedToMe.map(balance => (
+              <motion.div
+                key={`${balance.from_user_id}-${balance.to_user_id}`}
+                layout="position"
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <BalanceRow balance={balance} groupId={groupId} groupCurrency={groupCurrency} members={members} showSettleUp shortenTo currentUserId={currentUserId} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
     </div>

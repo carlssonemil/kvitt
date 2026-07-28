@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 import type { GroupStats } from '@/types/database'
 import { formatNumber } from '@/components/currency'
 import { PaymentSplitChart, MonthlySpendingChart, CategorySpendingChart } from '@/components/group-stats-charts'
@@ -24,6 +25,7 @@ interface GroupStatsTabProps {
 export function GroupStatsTab({ groupId, currency }: GroupStatsTabProps) {
   const [stats, setStats] = useState<GroupStats | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
     let cancelled = false
@@ -35,15 +37,42 @@ export function GroupStatsTab({ groupId, currency }: GroupStatsTabProps) {
     return () => { cancelled = true }
   }, [groupId])
 
-  if (error) {
-    return <p className="text-sm text-destructive py-8 text-center">{error}</p>
-  }
-
-  if (!stats) {
-    return <GroupStatsSkeleton />
-  }
-
-  return <GroupStatsView stats={stats} currency={currency} />
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      {error ? (
+        <motion.p
+          key="error"
+          className="text-sm text-destructive py-8 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        >
+          {error}
+        </motion.p>
+      ) : !stats ? (
+        <motion.div
+          key="skeleton"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <GroupStatsSkeleton />
+        </motion.div>
+      ) : (
+        <motion.div
+          key="content"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <GroupStatsView stats={stats} currency={currency} />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
 }
 
 function GroupStatsSkeleton() {

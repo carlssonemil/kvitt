@@ -347,18 +347,11 @@
       },
       {
         "date": "2026-07-02",
-        "title": "Snabbare gruppsidor och nya utgiftskategorier",
+        "title": "Dölj grupper, snabbare gruppsidor och nya utgiftskategorier",
         "description": [
+          "Medlemmar kan nu dölja en grupp, till exempel en avslutad resa, från sin egen gruppista utan att det påverkar andra medlemmar. Dolda grupper går fortfarande att nå och visar en markering om nya utgifter eller betalningar läggs till medan gruppen är dold.",
           "Grupper med hundratals utgifter laddas nu på en bråkdel av en sekund istället för tiotals sekunder, tack vare smartare växelkursuppslag och en statistikflik som laddas vid behov.",
           "Lade till Växter, Bränsle och Parkering som utgiftskategorier, samt ett tydligt \"Okategoriserad\"-alternativ i kategorifiltret istället för att blanda in dem under \"Övrigt\"."
-        ]
-      },
-      {
-        "date": "2026-07-02",
-        "title": "Dölj eller arkivera grupper du är klar med",
-        "description": [
-          "Medlemmar kan nu dölja en grupp, till exempel en avslutad resa, från sin egen gruppista utan att det påverkar andra medlemmar.",
-          "Dolda grupper går fortfarande att nå och visar en markering om nya utgifter eller betalningar läggs till medan gruppen är dold."
         ]
       },
       {

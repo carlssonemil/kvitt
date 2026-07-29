@@ -347,18 +347,11 @@
       },
       {
         "date": "2026-07-02",
-        "title": "Faster group pages and new expense categories",
+        "title": "Hide groups, faster group pages, and new expense categories",
         "description": [
+          "Members can now hide a group, like a finished trip, from their own groups list without affecting other members. Hidden groups stay reachable and show a badge if new expenses or settlements are added while hidden.",
           "Groups with hundreds of expenses now load in a fraction of a second instead of tens of seconds, thanks to smarter currency-rate lookups and a lazily-loaded stats tab.",
           "Added Plants, Fuel, and Parking as expense categories, plus an explicit \"Uncategorized\" option in the category filter instead of lumping those expenses under \"Other\"."
-        ]
-      },
-      {
-        "date": "2026-07-02",
-        "title": "Hide or archive groups you're done with",
-        "description": [
-          "Members can now hide a group, like a finished trip, from their own groups list without affecting other members.",
-          "Hidden groups stay reachable and show a badge if new expenses or settlements are added while hidden."
         ]
       },
       {

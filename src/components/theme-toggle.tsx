@@ -12,17 +12,24 @@ export function ThemeToggle() {
 
   if (!mounted) return <div className="size-8" />
 
+  const isDark = resolvedTheme === 'dark'
+
   return (
     <button
-      onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-      className="flex items-center justify-center size-8 rounded-full hover:bg-muted/60 transition-colors"
-      aria-label={`Switch to ${resolvedTheme === 'dark' ? 'light' : 'dark'} mode`}
+      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      className="relative flex items-center justify-center size-8 rounded-full hover:bg-muted/60 transition-colors"
+      aria-label={`Switch to ${isDark ? 'light' : 'dark'} mode`}
     >
-      {resolvedTheme === 'dark' ? (
-        <Sun className="size-4 text-muted-foreground" />
-      ) : (
-        <Moon className="size-4 text-muted-foreground" />
-      )}
+      <Sun
+        className={`absolute size-4 text-muted-foreground transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-0 ${
+          isDark ? 'opacity-0 -rotate-90' : 'opacity-100 rotate-0'
+        }`}
+      />
+      <Moon
+        className={`absolute size-4 text-muted-foreground transition-[opacity,transform] duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] motion-reduce:duration-0 ${
+          isDark ? 'opacity-100 rotate-0' : 'opacity-0 rotate-90'
+        }`}
+      />
     </button>
   )
 }

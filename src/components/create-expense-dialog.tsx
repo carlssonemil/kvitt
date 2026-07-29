@@ -342,7 +342,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                           disabled={isPending}
                           className="flex items-center gap-3 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted"
                         >
-                          <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border ${
+                          <div className={`flex size-4 shrink-0 items-center justify-center rounded-sm border transition-colors duration-150 ease-[cubic-bezier(0.23,1,0.32,1)] ${
                             included ? 'border-primary bg-primary text-primary-foreground' : 'border-input'
                           }`}>
                             {included && <CheckIcon className="size-3" />}
@@ -383,11 +383,21 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                       </div>
                     ))}
                     <div className="flex items-center justify-end gap-2">
-                      {exactEmptyIds.length > 0 && exactRemaining > 0.01 && (
-                        <Button type="button" variant="outline" size="sm" onClick={distributeExactRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                          {t('splitRemaining')}
-                        </Button>
-                      )}
+                      <AnimatePresence initial={false}>
+                        {exactEmptyIds.length > 0 && exactRemaining > 0.01 && (
+                          <motion.div
+                            key="exact-remaining-action"
+                            initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                            exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                            transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                          >
+                            <Button type="button" variant="outline" size="sm" onClick={distributeExactRemaining} className="h-6 rounded-full px-2.5 text-xs">
+                              {t('splitRemaining')}
+                            </Button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                       <AnimatePresence initial={false}>
                         {Math.abs(exactRemaining) > 0.01 && (
                           <motion.p
@@ -435,11 +445,21 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
                       </div>
                     ))}
                     <div className="flex items-center justify-end gap-2">
-                      {pctEmptyIds.length > 0 && pctRemaining > 0.01 && (
-                        <Button type="button" variant="outline" size="sm" onClick={distributePctRemaining} className="h-6 rounded-full px-2.5 text-xs">
-                          {t('splitRemaining')}
-                        </Button>
-                      )}
+                      <AnimatePresence initial={false}>
+                        {pctEmptyIds.length > 0 && pctRemaining > 0.01 && (
+                          <motion.div
+                            key="pct-remaining-action"
+                            initial={shouldReduceMotion ? false : { opacity: 0, transform: 'translateY(-4px)' }}
+                            animate={{ opacity: 1, transform: 'translateY(0px)' }}
+                            exit={{ opacity: 0, transform: 'translateY(0px)' }}
+                            transition={{ duration: 0.15, ease: [0.23, 1, 0.32, 1] }}
+                          >
+                            <Button type="button" variant="outline" size="sm" onClick={distributePctRemaining} className="h-6 rounded-full px-2.5 text-xs">
+                              {t('splitRemaining')}
+                            </Button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                       <AnimatePresence initial={false}>
                         {Math.abs(pctRemaining) > 0.01 && (
                           <motion.p

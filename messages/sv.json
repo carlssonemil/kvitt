@@ -38,18 +38,26 @@
       "getStarted": "Kom igång",
       "signIn": "Logga in"
     },
-    "howItWorks": {
-      "badge": "Så funkar det",
-      "headline": "Dela en utgift i tre steg",
-      "step1Label": "Steg 1",
-      "step1Title": "Lägg till utgifter",
-      "step1Body": "Logga en delad kostnad, välj vilka som var med och hur den ska delas.",
-      "step2Label": "Steg 2",
-      "step2Title": "Koll på saldona",
-      "step2Body": "Se vem som är skyldig vad direkt. Saldon uppdateras när utgifter läggs till.",
-      "step3Label": "Steg 3",
-      "step3Title": "Gör upp",
-      "step3Body": "Registrera en betalning för att nollställa en skuld och hålla allas saldon korrekta."
+    "features": {
+      "headline": "Byggd för att hantera detaljerna",
+      "items": {
+        "expenses": {
+          "title": "Dela en utgift på ditt sätt",
+          "description": "Jämnt, med exakta belopp eller procent, vad som än känns rättvist."
+        },
+        "balances": {
+          "title": "Saldon som alltid är aktuella",
+          "description": "Se vem som är skyldig vad direkt. Saldon uppdateras så fort en utgift eller uppgörelse läggs till."
+        },
+        "stats": {
+          "title": "Se var pengarna faktiskt tar vägen",
+          "description": "Bryt ner utgifter per kategori eller månad, så mönstren inte är en gåta."
+        },
+        "currencies": {
+          "title": "Alla valutor, omvandlade automatiskt",
+          "description": "Betalat i euro på resan? Kvitt omvandlar det till gruppens valuta enligt dagens kurs."
+        }
+      }
     },
     "cta": {
       "headline": "Redo att dela din första utgift?",

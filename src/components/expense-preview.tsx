@@ -22,7 +22,7 @@ export function ExpensePreview({ cardBg = 'bg-card/50', delayOffset = 0.25, show
   const t = useTranslations('home')
   const ts = useTranslations('settleUp')
 
-  const items = PREVIEW_DATA.map(item => {
+  const mapped = PREVIEW_DATA.map(item => {
     if (item.type === 'settlement') {
       return {
         type: item.type,
@@ -43,8 +43,8 @@ export function ExpensePreview({ cardBg = 'bg-card/50', delayOffset = 0.25, show
   })
 
   return (
-    <div className="flex flex-col gap-2">
-      {items.map(({ type, category, title, sub, amount }, i) => (
+    <div className="flex flex-col gap-2 select-none">
+      {mapped.map(({ type, category, title, sub, amount }, i) => (
         <FadeIn key={title} up delay={delayOffset + i * 0.1}>
           <div className={`flex items-center gap-3 rounded-lg ${cardBg} px-3 py-2.5 border border-border shadow-xs`}>
             <CategoryIcon category={type === 'settlement' ? 'settlement' : category} />
@@ -59,7 +59,7 @@ export function ExpensePreview({ cardBg = 'bg-card/50', delayOffset = 0.25, show
         </FadeIn>
       ))}
       {showFooter && (
-        <FadeIn delay={delayOffset + items.length * 0.1} className="flex items-center justify-center gap-2 mt-1">
+        <FadeIn delay={delayOffset + mapped.length * 0.1} className="flex items-center justify-center gap-2 mt-1">
           <ReceiptIcon className="size-3.5 text-muted-foreground" aria-hidden="true" />
           <p className="text-xs text-muted-foreground">{t('balancesAuto')}</p>
         </FadeIn>

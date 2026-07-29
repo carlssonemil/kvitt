@@ -38,18 +38,26 @@
       "getStarted": "Get started",
       "signIn": "Sign in"
     },
-    "howItWorks": {
-      "badge": "How it works",
-      "headline": "Split any expense in three steps",
-      "step1Label": "Step 1",
-      "step1Title": "Add expenses",
-      "step1Body": "Log a shared cost, pick who was involved, and choose how to split it.",
-      "step2Label": "Step 2",
-      "step2Title": "Track balances",
-      "step2Body": "See who owes what at a glance. Balances update as expenses are added.",
-      "step3Label": "Step 3",
-      "step3Title": "Settle up",
-      "step3Body": "Record a payment to clear a debt and keep everyone's balance accurate."
+    "features": {
+      "headline": "Built to handle the details",
+      "items": {
+        "expenses": {
+          "title": "Split any expense your way",
+          "description": "Equally, by exact amounts, or by percentage, whichever is fair."
+        },
+        "balances": {
+          "title": "Balances that stay current",
+          "description": "See who owes what at a glance. Balances update the moment an expense or settlement is added."
+        },
+        "stats": {
+          "title": "See where the money goes",
+          "description": "Break spending down by category or by month, so patterns aren't a mystery."
+        },
+        "currencies": {
+          "title": "Any currency, converted automatically",
+          "description": "Paid in euros on a trip? Kvitt converts it to the group's currency at today's rate."
+        }
+      }
     },
     "cta": {
       "headline": "Ready to split your first expense?",

@@ -69,7 +69,10 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
             ))}
             {balance.offset != null && balance.offsetBreakdown != null && (
               <p className="text-xs font-bold text-muted-foreground mt-2">
-                {t('offsetLabel', { name: balance.to_user_id === currentUserId ? tc('You') : balance.to_user_name })}
+                {t('offsetLabel', {
+                  name: balance.to_user_id === currentUserId ? tc('you') : balance.to_user_name,
+                  verb: balance.to_user_id === currentUserId ? t('owe') : t('owes'),
+                })}
               </p>
             )}
             {balance.offsetBreakdown?.map((item, i) => (

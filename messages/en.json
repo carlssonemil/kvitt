@@ -6,7 +6,7 @@
     "saved": "Saved",
     "optional": "(optional)",
     "you": "you",
-    "You": "you",
+    "You": "You",
     "selectPerson": "Select person",
     "cancel": "Cancel",
     "edit": "Edit",
@@ -113,13 +113,14 @@
   },
   "balance": {
     "owes": "owes",
+    "owe": "owe",
     "owedToYouLabel": "Owed to you",
     "settledTitle": "All settled up",
     "settledDesc": "No outstanding balances in this group.",
     "youDontOweTitle": "You don't owe anyone",
     "youDontOweDesc": "Nothing you need to do right now.",
     "markSettled": "Mark as settled",
-    "offsetLabel": "Offset ({name} owes back)"
+    "offsetLabel": "Offset ({name} {verb} back)"
   },
   "expense": {
     "add": "Add expense",

@@ -310,6 +310,50 @@
     "subtitle": "Nyheter och förbättringar i Kvitt.",
     "entries": [
       {
+        "date": "2026-07-29",
+        "title": "Interaktivt funktionsgalleri och polerad startsida",
+        "description": [
+          "Den statiska \"Så funkar det\"-sektionen är nu ett självroterande galleri med Utgifter, Saldon, Statistik och Valutor, var och en med en realistisk förhandsvisning av hur det ser ut i appen.",
+          "Sidhuvudet är nu klistrat (sticky) vid scrollning istället för att försvinna för utloggade besökare, och den kursiva \"Kvitt\"-tooltipen svarar på hover igen.",
+          "Tomma tillstånd, temaväxlaren och delningskontrollerna i dialogen för att lägga till utgift animeras nu in och ut, och animationerna på startsidan respekterar nu inställningen för minskad rörelse.",
+          "Fixade ett grammatikfel där kvittningsraden för ett saldo (t.ex. \"Kvittning (Anna är skyldig tillbaka)\") kunde visa fel form när det var du som var skyldig pengar tillbaka."
+        ]
+      },
+      {
+        "date": "2026-07-28",
+        "title": "Mer rörelse genom hela appen",
+        "description": [
+          "Utgifter tonas nu in och ut när de läggs till eller tas bort från listan, och att växla en utgift mellan visnings- och redigeringsläge korstonas nu istället för att hoppa till.",
+          "Delningstypssektioner, valideringsmeddelanden för delning, betalda saldon och statistikfliken animeras nu in och ut istället för att dyka upp abrupt."
+        ]
+      },
+      {
+        "date": "2026-07-06",
+        "title": "Smidigare återhämtning efter kallstart för hemskärmsappen",
+        "description": [
+          "Kvitt installerad på din telefons hemskärm visar nu samma animerade \"Ansluter…\"-skärm som i webbläsaren när backend vaknar upp, istället för telefonens generiska \"kunde inte läsas in\"-fel, och försöker automatiskt igen."
+        ]
+      },
+      {
+        "date": "2026-07-03",
+        "title": "Djupare statistik: full historik, engångsutgifter och språkanpassade tal",
+        "description": [
+          "Månadsutgifter visar nu en grupps hela historik med ett årsfilter och ett snitt per månad, istället för bara de senaste 5 månaderna.",
+          "Största utgifter inkluderar nu bara engångskostnader, inte återkommande som prenumerationer, och visar utgiftens datum.",
+          "Tal i statistik, utgifter och saldon formateras nu efter ditt språk, t.ex. med rätt tusentalsavgränsare.",
+          "Kategoridiagrammet är lättare att läsa med begränsade nyanser och avgränsare mellan segment.",
+          "Statistikkorten visar nu antal utgifter och totalbelopp för den här månaden direkt, istället för en procentuell jämförelse med förra månaden."
+        ]
+      },
+      {
+        "date": "2026-07-02",
+        "title": "Snabbare gruppsidor och nya utgiftskategorier",
+        "description": [
+          "Grupper med hundratals utgifter laddas nu på en bråkdel av en sekund istället för tiotals sekunder, tack vare smartare växelkursuppslag och en statistikflik som laddas vid behov.",
+          "Lade till Växter, Bränsle och Parkering som utgiftskategorier, samt ett tydligt \"Okategoriserad\"-alternativ i kategorifiltret istället för att blanda in dem under \"Övrigt\"."
+        ]
+      },
+      {
         "date": "2026-07-02",
         "title": "Dölj eller arkivera grupper du är klar med",
         "description": [

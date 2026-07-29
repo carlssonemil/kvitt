@@ -310,6 +310,50 @@
     "subtitle": "New updates and improvements to Kvitt.",
     "entries": [
       {
+        "date": "2026-07-29",
+        "title": "Interactive features showcase and landing page polish",
+        "description": [
+          "The static \"How It Works\" section is now an auto-cycling showcase of Expenses, Balances, Stats, and Currencies, each with a realistic preview of what it looks like in the app.",
+          "The header now stays visible while scrolling instead of disappearing for logged-out visitors, and the italic \"Kvitt\" tooltip responds to hover again.",
+          "Empty states, the theme toggle, and the split controls in the add-expense dialog now animate in and out, and landing page motion now respects your reduced-motion setting.",
+          "Fixed a grammar bug where the balance offset label (e.g. \"Offset (Anna owes back)\") could read \"you owes back\" when you were the one owing money back."
+        ]
+      },
+      {
+        "date": "2026-07-28",
+        "title": "More motion throughout the app",
+        "description": [
+          "Expenses fade in and out as they're added or removed from the list, and switching one between view and edit mode now crossfades instead of jumping.",
+          "Split-type sections, split validation messages, settled balances, and the stats tab now animate in and out instead of appearing abruptly."
+        ]
+      },
+      {
+        "date": "2026-07-06",
+        "title": "Smoother recovery from cold starts on the home screen app",
+        "description": [
+          "Kvitt installed to your phone's home screen now shows the same animated \"Connecting…\" screen you'd see in the browser when the backend is waking up, instead of the phone's generic \"couldn't load\" error, and retries automatically."
+        ]
+      },
+      {
+        "date": "2026-07-03",
+        "title": "Deeper stats: full history, one-time expenses, and locale-aware numbers",
+        "description": [
+          "Monthly spending now shows a group's entire history with a year filter and a per-month average, instead of just the last 5 months.",
+          "Top expenses now only include one-time costs, not recurring ones like subscriptions, and show the expense date.",
+          "Numbers throughout stats, expenses, and balances are now formatted for your language, e.g. with the right thousands separator.",
+          "The category breakdown chart is easier to read with capped shading and separators between slices.",
+          "Stat cards now show this month's expense count and total directly, instead of a percentage comparison to last month."
+        ]
+      },
+      {
+        "date": "2026-07-02",
+        "title": "Faster group pages and new expense categories",
+        "description": [
+          "Groups with hundreds of expenses now load in a fraction of a second instead of tens of seconds, thanks to smarter currency-rate lookups and a lazily-loaded stats tab.",
+          "Added Plants, Fuel, and Parking as expense categories, plus an explicit \"Uncategorized\" option in the category filter instead of lumping those expenses under \"Other\"."
+        ]
+      },
+      {
         "date": "2026-07-02",
         "title": "Hide or archive groups you're done with",
         "description": [

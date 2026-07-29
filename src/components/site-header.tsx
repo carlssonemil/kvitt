@@ -14,11 +14,11 @@ export async function SiteHeader() {
 
   if (!session) {
     return (
-      <header className="absolute top-0 left-0 w-full z-50">
+      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/70 backdrop-blur-md">
         <div className="max-w-4xl mx-auto w-full px-6">
           <nav className="flex items-center justify-between h-14">
             <Link href="/" className="flex items-center gap-2 font-semibold text-lg hover:opacity-80 transition-opacity">
-              <Bird className="size-5 text-primary" strokeWidth={1.75} />
+              <Bird className="size-5 text-primary" strokeWidth={1.75} aria-hidden="true" />
               <span>Kvitt</span>
             </Link>
             <div className="flex items-center gap-3">

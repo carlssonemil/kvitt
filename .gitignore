@@ -36,6 +36,11 @@ yarn-error.log*
 # vercel
 .vercel
 
+# local design/product notes
+/.impeccable
+/DESIGN.md
+/PRODUCT.md
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

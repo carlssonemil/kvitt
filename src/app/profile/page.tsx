@@ -19,6 +19,7 @@ export default async function ProfilePage() {
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     }),
     getTranslations('profile'),
   ])

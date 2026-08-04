@@ -33,6 +33,7 @@ export default async function GroupsPage() {
     email: user.email ?? '',
     name: user.name ?? null,
     image: user.image ?? null,
+    emailVerified: user.emailVerified,
   });
 
   const [groups, t, locale] = await Promise.all([

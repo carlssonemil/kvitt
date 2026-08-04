@@ -29,6 +29,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
     email: user.email ?? '',
     name: user.name ?? null,
     image: user.image ?? null,
+    emailVerified: user.emailVerified,
   })
 
   // Verify membership + fetch group

@@ -28,6 +28,7 @@ export async function createGroup(formData: FormData): Promise<{ error?: string 
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const inviteCode = nanoid(12)
@@ -70,6 +71,7 @@ export async function updateGroup(formData: FormData): Promise<{ error?: string 
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`SELECT created_by FROM groups WHERE id = ${groupId}` as { created_by: string }[]
@@ -100,6 +102,7 @@ export async function deleteGroup(formData: FormData): Promise<{ error?: string 
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`
@@ -128,6 +131,7 @@ export async function hideGroup(groupId: string): Promise<{ error?: string }> {
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     await sql`
@@ -153,6 +157,7 @@ export async function unhideGroup(groupId: string): Promise<{ error?: string }> 
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     await sql`
@@ -178,6 +183,7 @@ export async function regenerateInviteCode(groupId: string): Promise<{ inviteCod
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`SELECT created_by FROM groups WHERE id = ${groupId}` as { created_by: string }[]
@@ -205,6 +211,7 @@ export async function getGroupStatsAction(groupId: string): Promise<{ stats?: Gr
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`

@@ -26,6 +26,7 @@ export async function createSettlement(formData: FormData): Promise<{ error?: st
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`
@@ -78,6 +79,7 @@ export async function updateSettlement(formData: FormData): Promise<{ error?: st
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`
@@ -122,6 +124,7 @@ export async function deleteSettlement(formData: FormData): Promise<{ error?: st
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
+      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`

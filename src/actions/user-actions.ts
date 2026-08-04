@@ -21,7 +21,6 @@ export async function updateProfile(formData: FormData): Promise<{ error?: strin
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     await sql`

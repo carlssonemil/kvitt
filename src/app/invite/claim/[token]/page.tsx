@@ -19,7 +19,6 @@ export default async function ClaimPage({ params }: PageProps<'/invite/claim/[to
     email: user.email ?? '',
     name: user.name ?? null,
     image: user.image ?? null,
-    emailVerified: user.emailVerified,
   })
 
   const [guest] = await sql`

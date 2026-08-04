@@ -45,7 +45,6 @@ export async function createExpense(formData: FormData): Promise<{ error?: strin
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`
@@ -129,7 +128,6 @@ export async function updateExpense(formData: FormData): Promise<{ error?: strin
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`
@@ -188,7 +186,6 @@ export async function deleteExpense(formData: FormData): Promise<{ error?: strin
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const membership = await sql`

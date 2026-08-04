@@ -16,7 +16,6 @@ export async function joinGroupByInvite(inviteCode: string): Promise<{ groupId?:
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`
@@ -56,7 +55,6 @@ export async function removeMember(formData: FormData): Promise<{ error?: string
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const [group] = await sql`SELECT created_by FROM groups WHERE id = ${groupId}` as { created_by: string }[]
@@ -103,7 +101,6 @@ export async function addGuest(formData: FormData): Promise<{ error?: string }> 
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const [membership] = await sql`
@@ -144,7 +141,6 @@ export async function getGuestClaimLink(
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const [membership] = await sql`
@@ -179,7 +175,6 @@ export async function claimGuest(claimToken: string): Promise<{ groupId?: string
       email: user.email ?? '',
       name: user.name ?? null,
       image: user.image ?? null,
-      emailVerified: user.emailVerified,
     })
 
     const [guest] = await sql`

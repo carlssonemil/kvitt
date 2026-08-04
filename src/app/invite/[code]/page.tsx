@@ -18,7 +18,6 @@ export default async function InvitePage({ params }: PageProps<'/invite/[code]'>
     email: user.email ?? '',
     name: user.name ?? null,
     image: user.image ?? null,
-    emailVerified: user.emailVerified,
   })
 
   const result = await joinGroupByInvite(code)

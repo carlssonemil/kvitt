@@ -83,10 +83,8 @@ export interface ExpenseSplitWithUser extends DbExpenseSplit {
 
 export interface GroupMemberWithUser extends DbGroupMember {
   display_name: string
-  email: string
   avatar_url: string | null
   is_guest: boolean
-  claim_token: string | null
 }
 
 // Who owes who within a group (direct per-expense, grouped by debtor→creditor pair)

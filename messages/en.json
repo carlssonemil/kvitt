@@ -239,6 +239,7 @@
     "copyClaimLink": "Copy claim link",
     "copyClaimLinkTooltip": "Anyone with this link can create an account and take over the expenses and balances for {name} in this group",
     "claimLinkCopied": "Claim link copied",
+    "claimLinkCopyFailed": "Couldn't get claim link. Please try again.",
     "removeMemberTitle": "Remove member?",
     "removeMemberDesc": "The expense history for {name} stays in the group. If they still owe money or are owed money, that balance can no longer be settled after they're removed.",
     "removeMemberAriaLabel": "Remove {name}",

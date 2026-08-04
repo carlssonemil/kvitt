@@ -129,6 +129,41 @@ export async function addGuest(formData: FormData): Promise<{ error?: string }> 
   }
 }
 
+export async function getGuestClaimLink(
+  groupId: string,
+  memberId: string,
+): Promise<{ claimToken?: string; error?: string }> {
+  const { session, user } = await neonAuth()
+  if (!session || !user) return { error: 'Not authenticated' }
+
+  try {
+    const dbUser = await ensureUser({
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.image ?? null,
+    })
+
+    const [membership] = await sql`
+      SELECT 1 FROM group_members WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
+    `
+    if (!membership) return { error: 'Not a member of this group' }
+
+    const [guest] = await sql`
+      SELECT u.claim_token
+      FROM users u
+      JOIN group_members gm ON gm.user_id = u.id
+      WHERE u.id = ${memberId} AND gm.group_id = ${groupId} AND u.is_guest = true
+    ` as { claim_token: string | null }[]
+
+    if (!guest || !guest.claim_token) return { error: 'No active claim link for this member' }
+
+    return { claimToken: guest.claim_token }
+  } catch (err) {
+    console.error('getGuestClaimLink error:', err)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+}
+
 export async function claimGuest(claimToken: string): Promise<{ groupId?: string; error?: string }> {
   const { session, user } = await neonAuth()
   if (!session || !user) return { error: 'Not authenticated' }

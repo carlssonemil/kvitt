@@ -239,6 +239,7 @@
     "copyClaimLink": "Kopiera anspråkslänk",
     "copyClaimLinkTooltip": "Alla med den här länken kan skapa ett konto och ta över utgifter och saldon för {name} i den här gruppen",
     "claimLinkCopied": "Anspråkslänk kopierad",
+    "claimLinkCopyFailed": "Kunde inte hämta anspråkslänken. Försök igen.",
     "removeMemberTitle": "Ta bort medlem?",
     "removeMemberDesc": "Utgiftshistoriken för {name} finns kvar i gruppen. Om de fortfarande är skyldiga pengar eller ska få pengar tillbaka går det inte längre att reglera det saldot efter att de tagits bort.",
     "removeMemberAriaLabel": "Ta bort {name}",

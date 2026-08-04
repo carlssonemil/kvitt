@@ -15,17 +15,15 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/user-avatar'
 import { updateGroup, deleteGroup, regenerateInviteCode, hideGroup, unhideGroup } from '@/actions/group-actions'
-import { removeMember, addGuest } from '@/actions/member-actions'
+import { removeMember, addGuest, getGuestClaimLink } from '@/actions/member-actions'
 import { SUPPORTED_CURRENCIES, ROUTES } from '@/lib/constants'
 import { useTranslations } from 'next-intl'
 
 interface Member {
   id: string
   display_name: string
-  email: string
   avatar_url: string | null
   is_guest: boolean
-  claim_token: string | null
 }
 
 interface GroupSettingsProps {
@@ -60,6 +58,8 @@ export function GroupSettings({
   const [isRemoving, setIsRemoving] = useTransition()
   const [isRegenerating, startRegenerating] = useTransition()
   const [isTogglingHidden, startTogglingHidden] = useTransition()
+  const [isCopyingClaim, startCopyingClaim] = useTransition()
+  const [copyingClaimId, setCopyingClaimId] = useState<string | null>(null)
   const [inviteCode, setInviteCode] = useState(initialInviteCode)
   const [guestName, setGuestName] = useState('')
   const [isAddingGuest, startAddingGuest] = useTransition()
@@ -75,10 +75,19 @@ export function GroupSettings({
     toast.success(t('inviteLinkCopied'))
   }
 
-  function handleCopyClaimLink(claimToken: string) {
-    const url = `${window.location.origin}${ROUTES.CLAIM(claimToken)}`
-    navigator.clipboard.writeText(url)
-    toast.success(t('claimLinkCopied'))
+  function handleCopyClaimLink(memberId: string) {
+    setCopyingClaimId(memberId)
+    startCopyingClaim(async () => {
+      const result = await getGuestClaimLink(groupId, memberId)
+      setCopyingClaimId(null)
+      if (result.error || !result.claimToken) {
+        toast.error(result.error ?? t('claimLinkCopyFailed'))
+        return
+      }
+      const url = `${window.location.origin}${ROUTES.CLAIM(result.claimToken)}`
+      navigator.clipboard.writeText(url)
+      toast.success(t('claimLinkCopied'))
+    })
   }
 
   function handleRegenerate() {
@@ -282,16 +291,19 @@ export function GroupSettings({
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                {member.is_guest && member.claim_token && (
+                {member.is_guest && (
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="shrink-0 text-muted-foreground"
-                        onClick={() => handleCopyClaimLink(member.claim_token!)}
+                        disabled={isCopyingClaim && copyingClaimId === member.id}
+                        onClick={() => handleCopyClaimLink(member.id)}
                       >
-                        <CopyIcon className="size-3.5" />
+                        {isCopyingClaim && copyingClaimId === member.id
+                          ? <LoaderCircleIcon className="size-3.5 animate-spin" />
+                          : <CopyIcon className="size-3.5" />}
                         {t('copyClaimLink')}
                       </Button>
                     </TooltipTrigger>

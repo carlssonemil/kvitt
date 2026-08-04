@@ -18,6 +18,7 @@ import { Currency } from '@/components/currency'
 import { UserAvatar } from '@/components/user-avatar'
 import { getCategoryIcon, EXPENSE_CATEGORIES } from '@/lib/categories'
 import { deleteExpense, updateExpense } from '@/actions/expense-actions'
+import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import type { ExpenseWithPayer } from '@/types/database'
 import { useTranslations, useLocale } from 'next-intl'
@@ -53,6 +54,7 @@ function computeEqualSplits(amount: number, memberIds: string[]): Record<string,
 export function ExpenseDetail({ expense, groupId, currentUserId, members, open, onOpenChange }: ExpenseDetailProps) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const { invalidate: invalidateStats } = useGroupStatsCache()
   const [isEditing, setIsEditing] = useState(false)
   const shouldReduceMotion = useReducedMotion()
   const t = useTranslations('expense')
@@ -172,6 +174,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
       toast.success(t('updatedToast'))
       setIsEditing(false)
       router.refresh()
+      invalidateStats()
     })
   }
 
@@ -188,6 +191,7 @@ export function ExpenseDetail({ expense, groupId, currentUserId, members, open, 
       toast.success(t('deletedToast'))
       onOpenChange(false)
       router.refresh()
+      invalidateStats()
     })
   }
 

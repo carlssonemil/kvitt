@@ -9,7 +9,7 @@ import { ReceiptIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { getGroupStatsAction } from '@/actions/group-actions'
+import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { useTranslations, useLocale } from 'next-intl'
 
 interface GroupStatsViewProps {
@@ -18,24 +18,16 @@ interface GroupStatsViewProps {
 }
 
 interface GroupStatsTabProps {
-  groupId: string
   currency: string
 }
 
-export function GroupStatsTab({ groupId, currency }: GroupStatsTabProps) {
-  const [stats, setStats] = useState<GroupStats | null>(null)
-  const [error, setError] = useState<string | null>(null)
+export function GroupStatsTab({ currency }: GroupStatsTabProps) {
+  const { stats, error, prefetch } = useGroupStatsCache()
   const shouldReduceMotion = useReducedMotion()
 
   useEffect(() => {
-    let cancelled = false
-    getGroupStatsAction(groupId).then(result => {
-      if (cancelled) return
-      if (result.error) setError(result.error)
-      else setStats(result.stats ?? null)
-    })
-    return () => { cancelled = true }
-  }, [groupId])
+    prefetch()
+  }, [prefetch])
 
   return (
     <AnimatePresence mode="wait" initial={false}>

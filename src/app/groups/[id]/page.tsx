@@ -115,7 +115,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
         })()}
       </div>
 
-      <GroupTabs counts={{
+      <GroupTabs groupId={id} counts={{
         expenses: expenses.length + settlements.length,
         balances: balances.filter(b => b.from_user_id === dbUser.id).length || undefined,
       }}>
@@ -150,7 +150,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
         </TabsContent>
 
         <TabsContent value="stats">
-          <GroupStatsTab groupId={id} currency={group.currency} />
+          <GroupStatsTab currency={group.currency} />
         </TabsContent>
 
         <TabsContent value="settings">

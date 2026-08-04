@@ -6,6 +6,7 @@ async function getRates(): Promise<Record<string, number> | null> {
   try {
     const res = await fetch('https://api.frankfurter.app/latest?from=EUR', {
       next: { revalidate: 3600 },
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return null
     const data = await res.json() as { rates: Record<string, number> }
@@ -20,6 +21,7 @@ async function getRatesForDate(date: string): Promise<Record<string, number> | n
   try {
     const res = await fetch(`https://api.frankfurter.app/${date}?from=EUR`, {
       cache: 'force-cache',
+      signal: AbortSignal.timeout(5000),
     })
     if (!res.ok) return null
     const data = await res.json() as { rates: Record<string, number> }

@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { createSettlement } from '@/actions/settlement-actions'
+import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { useTranslations } from 'next-intl'
 
 interface Member {
@@ -41,6 +42,7 @@ export function SettleUpDialog({
   const [paidTo, setPaidTo] = useState(defaultToId ?? '')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const { invalidate: invalidateStats } = useGroupStatsCache()
   const t = useTranslations('settleUp')
   const tc = useTranslations('common')
 
@@ -70,6 +72,7 @@ export function SettleUpDialog({
       toast.success(t('successToast'))
       setOpen(false)
       router.refresh()
+      invalidateStats()
     })
   }
 

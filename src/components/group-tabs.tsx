@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { useTranslations } from 'next-intl'
+import { GroupStatsCacheProvider, useGroupStatsCache } from '@/components/group-stats-cache'
 
 const TAB_VALUES = ['expenses', 'balances', 'stats', 'settings'] as const
 type TabValue = typeof TAB_VALUES[number]
@@ -13,9 +14,19 @@ const VALID_TABS = new Set<string>(TAB_VALUES)
 interface GroupTabsProps {
   children: React.ReactNode
   counts?: Partial<Record<string, number>>
+  groupId: string
 }
 
-export function GroupTabs({ children, counts }: GroupTabsProps) {
+export function GroupTabs({ children, counts, groupId }: GroupTabsProps) {
+  return (
+    <GroupStatsCacheProvider groupId={groupId}>
+      <GroupTabsBar counts={counts}>{children}</GroupTabsBar>
+    </GroupStatsCacheProvider>
+  )
+}
+
+function GroupTabsBar({ children, counts }: { children: React.ReactNode; counts?: Partial<Record<string, number>> }) {
+  const { prefetch } = useGroupStatsCache()
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -81,7 +92,12 @@ export function GroupTabs({ children, counts }: GroupTabsProps) {
                 className="w-full justify-start [&>[data-slot=tabs-trigger]]:flex-none"
               >
                 {TAB_VALUES.map(value => (
-                  <TabsTrigger key={value} value={value}>
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    onMouseEnter={value === 'stats' ? prefetch : undefined}
+                    onFocus={value === 'stats' ? prefetch : undefined}
+                  >
                     {t(value)}
                     {counts?.[value] != null && (
                       <Badge variant="secondary" className="ml-0.5 text-[10px] h-4 px-1.5">

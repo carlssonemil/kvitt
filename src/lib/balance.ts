@@ -2,10 +2,23 @@ import { sql } from '@/lib/db'
 import { getMultiDateConversions } from '@/lib/exchange-rates'
 import type { Balance } from '@/types/database'
 
+type DebtRow = { group_id: string; from_user_id: string; from_user_name: string; to_user_id: string; to_user_name: string; amount: number; currency: string; date: string; expense_title: string }
+type SettlementRow = { group_id: string; paid_by: string; paid_to: string; amount: number; currency: string; date: string }
+
 export async function computeBalances(groupId: string, groupCurrency: string): Promise<Balance[]> {
+  const balancesByGroup = await computeBalancesForGroups([{ id: groupId, currency: groupCurrency }])
+  return balancesByGroup.get(groupId) ?? []
+}
+
+export async function computeBalancesForGroups(groups: { id: string; currency: string }[]): Promise<Map<string, Balance[]>> {
+  if (groups.length === 0) return new Map()
+
+  const groupIds = groups.map(g => g.id)
+
   const [debtRows, settlements] = await Promise.all([
     sql`
       SELECT
+        e.group_id         AS group_id,
         es.user_id        AS from_user_id,
         u_from.display_name AS from_user_name,
         e.paid_by         AS to_user_id,
@@ -18,19 +31,42 @@ export async function computeBalances(groupId: string, groupCurrency: string): P
       JOIN expenses e    ON e.id  = es.expense_id
       JOIN users u_from  ON u_from.id = es.user_id
       JOIN users u_to    ON u_to.id   = e.paid_by
-      WHERE e.group_id = ${groupId}
+      WHERE e.group_id = ANY(${groupIds})
         AND es.user_id != e.paid_by
     `,
     sql`
-      SELECT paid_by, paid_to, amount::float AS amount, currency, created_at::date::text AS date
+      SELECT group_id, paid_by, paid_to, amount::float AS amount, currency, created_at::date::text AS date
       FROM settlements
-      WHERE group_id = ${groupId}
+      WHERE group_id = ANY(${groupIds})
     `,
-  ]) as [
-    { from_user_id: string; from_user_name: string; to_user_id: string; to_user_name: string; amount: number; currency: string; date: string; expense_title: string }[],
-    { paid_by: string; paid_to: string; amount: number; currency: string; date: string }[],
-  ]
+  ]) as [DebtRow[], SettlementRow[]]
 
+  const debtRowsByGroup = new Map<string, DebtRow[]>()
+  for (const row of debtRows) {
+    const list = debtRowsByGroup.get(row.group_id)
+    if (list) list.push(row)
+    else debtRowsByGroup.set(row.group_id, [row])
+  }
+
+  const settlementsByGroup = new Map<string, SettlementRow[]>()
+  for (const s of settlements) {
+    const list = settlementsByGroup.get(s.group_id)
+    if (list) list.push(s)
+    else settlementsByGroup.set(s.group_id, [s])
+  }
+
+  const result = new Map<string, Balance[]>()
+  for (const g of groups) {
+    result.set(g.id, await buildBalances(
+      debtRowsByGroup.get(g.id) ?? [],
+      settlementsByGroup.get(g.id) ?? [],
+      g.currency,
+    ))
+  }
+  return result
+}
+
+async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], groupCurrency: string): Promise<Balance[]> {
   // Collect all dates that require currency conversion
   const allDates = new Set<string>()
   for (const row of debtRows) {

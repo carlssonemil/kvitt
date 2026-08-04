@@ -331,7 +331,8 @@
           "Add a \"guest\" to a group for someone who doesn't want to sign up, like a friend who's only around for one trip. It's tucked behind a discreet \"Invite guest\" option at the bottom of the member list, which explains what a guest is before you add one.",
           "Guests show a Guest badge and appear in expenses and balances just like any other member. Each one gets a personal claim link — if they ever create a real account, opening that link moves their expense history and balances over to it.",
           "Removing a member now explains the consequences before you confirm: their expense history stays in the group, but any balance they still owe or are owed can no longer be settled afterward.",
-          "Added tooltips to icon-only buttons throughout group settings — copying or regenerating the invite link, copying a guest's claim link, and removing a member — so it's clearer what each one does."
+          "Added tooltips to icon-only buttons throughout group settings — copying or regenerating the invite link, copying a guest's claim link, and removing a member — so it's clearer what each one does.",
+          "Your groups list now loads with far fewer database round-trips when you belong to several groups, and hovering the Stats tab in a group preloads it so it opens instantly instead of showing a loading skeleton."
         ]
       },
       {

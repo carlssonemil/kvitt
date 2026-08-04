@@ -17,7 +17,7 @@ import { GroupMemberAvatars } from "@/components/group-member-avatars";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { getTranslations, getLocale } from "next-intl/server";
-import { computeBalances } from "@/lib/balance";
+import { computeBalancesForGroups } from "@/lib/balance";
 
 interface GroupWithMembers extends DbGroup {
   hidden_at: string | null
@@ -63,36 +63,38 @@ export default async function GroupsPage() {
   const hiddenGroups = groups.filter(g => g.hidden_at)
 
   // Compute net balance per group in group currency (handles all expense currencies)
-  const balancesByGroup = await Promise.all(
-    groups.map(g => computeBalances(g.id, g.currency))
-  )
-  const netBalances = balancesByGroup.map((balances, i) => {
+  const balancesByGroup = await computeBalancesForGroups(groups.map(g => ({ id: g.id, currency: g.currency })))
+  const netBalances = groups.map(group => {
     const userId = dbUser.id
     let net = 0
-    for (const b of balances) {
+    for (const b of balancesByGroup.get(group.id) ?? []) {
       if (b.to_user_id === userId)   net += b.amount
       if (b.from_user_id === userId) net -= b.amount
     }
-    return { groupId: groups[i].id, net: Math.round(net * 100) / 100 }
+    return { groupId: group.id, net: Math.round(net * 100) / 100 }
   })
 
   // For hidden groups, check whether new activity happened after the group was hidden
+  const lastActivityByGroup = new Map(
+    hiddenGroups.length > 0
+      ? (await sql`
+          SELECT group_id, MAX(created_at) AS last_activity_at FROM (
+            SELECT group_id, created_at FROM expenses WHERE group_id = ANY(${hiddenGroups.map(g => g.id)})
+            UNION ALL
+            SELECT group_id, created_at FROM settlements WHERE group_id = ANY(${hiddenGroups.map(g => g.id)})
+          ) x GROUP BY group_id
+        ` as { group_id: string; last_activity_at: string }[]).map(row => [row.group_id, row.last_activity_at] as const)
+      : []
+  )
   const newActivityByGroup = new Map(
-    await Promise.all(
-      hiddenGroups.map(async g => {
-        const [row] = await sql`
-          SELECT GREATEST(
-            COALESCE((SELECT MAX(created_at) FROM expenses WHERE group_id = ${g.id}), '-infinity'),
-            COALESCE((SELECT MAX(created_at) FROM settlements WHERE group_id = ${g.id}), '-infinity')
-          ) AS last_activity_at
-        ` as { last_activity_at: string | null }[]
-        const seenAt = g.activity_seen_at && new Date(g.activity_seen_at) > new Date(g.hidden_at!)
-          ? g.activity_seen_at
-          : g.hidden_at
-        const hasNewActivity = !!row.last_activity_at && new Date(row.last_activity_at) > new Date(seenAt!)
-        return [g.id, hasNewActivity] as const
-      })
-    )
+    hiddenGroups.map(g => {
+      const lastActivityAt = lastActivityByGroup.get(g.id)
+      const seenAt = g.activity_seen_at && new Date(g.activity_seen_at) > new Date(g.hidden_at!)
+        ? g.activity_seen_at
+        : g.hidden_at
+      const hasNewActivity = !!lastActivityAt && new Date(lastActivityAt) > new Date(seenAt!)
+      return [g.id, hasNewActivity] as const
+    })
   )
 
   const anyHiddenGroupHasNewActivity = hiddenGroups.some(g => newActivityByGroup.get(g.id))

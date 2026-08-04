@@ -15,6 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { UserAvatar } from '@/components/user-avatar'
 import { createExpense } from '@/actions/expense-actions'
+import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { formatNumber } from '@/components/currency'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
 import { useTranslations, useLocale } from 'next-intl'
@@ -50,6 +51,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
   const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const { invalidate: invalidateStats } = useGroupStatsCache()
   const t = useTranslations('expense')
   const tc = useTranslations('common')
   const tcat = useTranslations('categories')
@@ -185,6 +187,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
       setOpen(false)
       resetForm()
       router.refresh()
+      invalidateStats()
     })
   }
 

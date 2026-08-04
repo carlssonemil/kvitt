@@ -13,6 +13,7 @@ import { ResponsiveDialog } from '@/components/ui/responsive-dialog'
 import { Currency } from '@/components/currency'
 import { UserAvatar } from '@/components/user-avatar'
 import { deleteSettlement, updateSettlement } from '@/actions/settlement-actions'
+import { useGroupStatsCache } from '@/components/group-stats-cache'
 import type { SettlementWithUsers } from '@/lib/queries'
 import { useTranslations, useLocale } from 'next-intl'
 
@@ -35,6 +36,7 @@ interface SettlementDetailProps {
 export function SettlementDetail({ settlement, groupId, currentUserId, currency, members, open, onOpenChange }: SettlementDetailProps) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
+  const { invalidate: invalidateStats } = useGroupStatsCache()
   const [isEditing, setIsEditing] = useState(false)
   const [paidBy, setPaidBy] = useState(settlement.paid_by)
   const [paidTo, setPaidTo] = useState(settlement.paid_to)
@@ -72,6 +74,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
       toast.success(t('updatedToast'))
       setIsEditing(false)
       router.refresh()
+      invalidateStats()
     })
   }
 
@@ -88,6 +91,7 @@ export function SettlementDetail({ settlement, groupId, currentUserId, currency,
       toast.success(t('removedToast'))
       onOpenChange(false)
       router.refresh()
+      invalidateStats()
     })
   }
 

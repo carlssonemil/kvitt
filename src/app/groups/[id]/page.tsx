@@ -75,6 +75,8 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
     display_name: m.display_name,
     avatar_url: m.avatar_url,
     email: m.email,
+    is_guest: m.is_guest,
+    claim_token: m.claim_token,
   }))
 
   return (

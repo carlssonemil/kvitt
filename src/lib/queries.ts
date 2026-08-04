@@ -52,7 +52,7 @@ export async function getGroupExpenses(groupId: string): Promise<ExpenseWithPaye
 export async function getGroupMembers(groupId: string): Promise<GroupMemberWithUser[]> {
   const rows = await sql`
     SELECT gm.id, gm.group_id, gm.user_id, gm.joined_at,
-           u.display_name, u.email, u.avatar_url
+           u.display_name, u.email, u.avatar_url, u.is_guest, u.claim_token
     FROM group_members gm
     JOIN users u ON u.id = gm.user_id
     WHERE gm.group_id = ${groupId}

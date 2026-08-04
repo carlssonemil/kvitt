@@ -11,6 +11,7 @@ export const ROUTES = {
   GROUPS: '/groups',
   GROUP: (id: string) => `/groups/${id}`,
   INVITE: (code: string) => `/invite/${code}`,
+  CLAIM: (token: string) => `/invite/claim/${token}`,
   PROFILE: '/profile',
   SIGN_IN: '/handler/sign-in',
   SIGN_UP: '/handler/sign-up',

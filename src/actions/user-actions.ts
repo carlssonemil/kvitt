@@ -53,28 +53,31 @@ export async function deleteAccount(): Promise<{ error?: string }> {
     const userId = rows[0]?.id
     if (!userId) return { error: 'Account not found' }
 
-    // Transfer ownership of groups to the oldest remaining member
+    // Transfer ownership of groups to the oldest remaining real (non-guest) member
     await sql`
       UPDATE groups g
       SET created_by = (
         SELECT gm.user_id FROM group_members gm
-        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+        JOIN users u ON u.id = gm.user_id
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId} AND u.is_guest = false
         ORDER BY gm.joined_at ASC LIMIT 1
       )
       WHERE g.created_by = ${userId}
       AND EXISTS (
         SELECT 1 FROM group_members gm
-        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+        JOIN users u ON u.id = gm.user_id
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId} AND u.is_guest = false
       )
     `
 
-    // Delete groups where the user is the sole member
+    // Delete groups where no real member remains (any leftover guests go with it)
     await sql`
       DELETE FROM groups g
       WHERE g.created_by = ${userId}
       AND NOT EXISTS (
         SELECT 1 FROM group_members gm
-        WHERE gm.group_id = g.id AND gm.user_id != ${userId}
+        JOIN users u ON u.id = gm.user_id
+        WHERE gm.group_id = g.id AND gm.user_id != ${userId} AND u.is_guest = false
       )
     `
 

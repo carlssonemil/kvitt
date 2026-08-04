@@ -3,16 +3,19 @@
 import { useState, useRef, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Trash2Icon, CheckIcon, LoaderCircleIcon, CopyIcon, RefreshCwIcon, LinkIcon, ArchiveIcon, ArchiveRestoreIcon } from 'lucide-react'
+import { Trash2Icon, CheckIcon, LoaderCircleIcon, CopyIcon, RefreshCwIcon, LinkIcon, ArchiveIcon, ArchiveRestoreIcon, UserPlusIcon } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { UserAvatar } from '@/components/user-avatar'
 import { updateGroup, deleteGroup, regenerateInviteCode, hideGroup, unhideGroup } from '@/actions/group-actions'
-import { removeMember } from '@/actions/member-actions'
+import { removeMember, addGuest } from '@/actions/member-actions'
 import { SUPPORTED_CURRENCIES, ROUTES } from '@/lib/constants'
 import { useTranslations } from 'next-intl'
 
@@ -21,6 +24,8 @@ interface Member {
   display_name: string
   email: string
   avatar_url: string | null
+  is_guest: boolean
+  claim_token: string | null
 }
 
 interface GroupSettingsProps {
@@ -56,6 +61,10 @@ export function GroupSettings({
   const [isRegenerating, startRegenerating] = useTransition()
   const [isTogglingHidden, startTogglingHidden] = useTransition()
   const [inviteCode, setInviteCode] = useState(initialInviteCode)
+  const [guestName, setGuestName] = useState('')
+  const [isAddingGuest, startAddingGuest] = useTransition()
+  const [guestDialogOpen, setGuestDialogOpen] = useState(false)
+  const guestNameInputRef = useRef<HTMLInputElement>(null)
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const t = useTranslations('groupSettings')
   const tc = useTranslations('common')
@@ -64,6 +73,12 @@ export function GroupSettings({
     const url = `${window.location.origin}/invite/${inviteCode}`
     navigator.clipboard.writeText(url)
     toast.success(t('inviteLinkCopied'))
+  }
+
+  function handleCopyClaimLink(claimToken: string) {
+    const url = `${window.location.origin}${ROUTES.CLAIM(claimToken)}`
+    navigator.clipboard.writeText(url)
+    toast.success(t('claimLinkCopied'))
   }
 
   function handleRegenerate() {
@@ -143,6 +158,25 @@ export function GroupSettings({
     })
   }
 
+  function handleAddGuest() {
+    if (!guestName.trim()) return
+    const formData = new FormData()
+    formData.set('group_id', groupId)
+    formData.set('name', guestName)
+
+    startAddingGuest(async () => {
+      const result = await addGuest(formData)
+      if (result.error) {
+        toast.error(result.error)
+        return
+      }
+      setGuestName('')
+      guestNameInputRef.current?.focus()
+      toast.success(t('guestAdded'))
+      router.refresh()
+    })
+  }
+
   return (
     <div className="flex flex-col gap-8">
       <section>
@@ -208,21 +242,32 @@ export function GroupSettings({
           <span className="text-xs text-muted-foreground font-mono truncate flex-1">
             {typeof window !== 'undefined' ? `${window.location.origin}/invite/${inviteCode}` : `/invite/${inviteCode}`}
           </span>
-          <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={handleCopyInviteLink} aria-label={t('copyInviteLink')}>
-            <CopyIcon className="size-3.5" />
-          </Button>
-          <ConfirmDialog
-            trigger={
-              <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" disabled={isRegenerating} aria-label={t('regenerateLabel')}>
-                <RefreshCwIcon className={`size-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-7 shrink-0" onClick={handleCopyInviteLink} aria-label={t('copyInviteLink')}>
+                <CopyIcon className="size-3.5" />
               </Button>
-            }
-            title={t('regenerateTitle')}
-            description={t('regenerateDesc')}
-            confirmLabel={t('regenerateConfirm')}
-            onConfirm={handleRegenerate}
-            isPending={isRegenerating}
-          />
+            </TooltipTrigger>
+            <TooltipContent>{t('copyInviteLinkTooltip')}</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <ConfirmDialog
+              trigger={
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-7 shrink-0 text-muted-foreground" disabled={isRegenerating} aria-label={t('regenerateLabel')}>
+                    <RefreshCwIcon className={`size-3.5 ${isRegenerating ? 'animate-spin' : ''}`} />
+                  </Button>
+                </TooltipTrigger>
+              }
+              title={t('regenerateTitle')}
+              description={t('regenerateDesc')}
+              confirmLabel={t('regenerateConfirm')}
+              cancelLabel={tc('cancel')}
+              onConfirm={handleRegenerate}
+              isPending={isRegenerating}
+            />
+            <TooltipContent>{t('regenerateTooltip')}</TooltipContent>
+          </Tooltip>
         </div>
         <div className="flex flex-col gap-2">
           {members.map(member => (
@@ -230,32 +275,106 @@ export function GroupSettings({
               <div className="flex items-center gap-3">
                 <UserAvatar name={member.display_name} avatarUrl={member.avatar_url} size="sm" />
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium">{member.display_name}</span>
+                  <span className="text-sm font-medium flex items-center gap-1.5">
+                    {member.display_name}
+                    {member.is_guest && <Badge variant="secondary">{t('guestBadge')}</Badge>}
+                  </span>
                 </div>
               </div>
-              {member.id !== createdBy && (
-                <ConfirmDialog
-                  trigger={
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-7 text-muted-foreground hover:text-destructive"
-                      disabled={isRemoving}
-                      aria-label={`Remove ${member.display_name}`}
-                    >
-                      <Trash2Icon className="size-3.5" />
-                    </Button>
-                  }
-                  title={t('removeMemberTitle')}
-                  description={`Remove ${member.display_name} from this group?`}
-                  confirmLabel={t('removeMemberConfirm')}
-                  variant="destructive"
-                  onConfirm={() => handleRemoveMember(member.id)}
-                  isPending={isRemoving}
-                />
-              )}
+              <div className="flex items-center gap-1">
+                {member.is_guest && member.claim_token && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0 text-muted-foreground"
+                        onClick={() => handleCopyClaimLink(member.claim_token!)}
+                      >
+                        <CopyIcon className="size-3.5" />
+                        {t('copyClaimLink')}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {t('copyClaimLinkTooltip', { name: member.display_name })}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                {member.id !== createdBy && (
+                  <Tooltip>
+                    <ConfirmDialog
+                      trigger={
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-7 text-muted-foreground hover:text-destructive"
+                            disabled={isRemoving}
+                            aria-label={t('removeMemberAriaLabel', { name: member.display_name })}
+                          >
+                            <Trash2Icon className="size-3.5" />
+                          </Button>
+                        </TooltipTrigger>
+                      }
+                      title={t('removeMemberTitle')}
+                      description={t('removeMemberDesc', { name: member.display_name })}
+                      confirmLabel={t('removeMemberConfirm')}
+                      cancelLabel={tc('cancel')}
+                      variant="destructive"
+                      onConfirm={() => handleRemoveMember(member.id)}
+                      isPending={isRemoving}
+                    />
+                    <TooltipContent>{t('removeMemberAriaLabel', { name: member.display_name })}</TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
             </div>
           ))}
+          <Dialog
+            open={guestDialogOpen}
+            onOpenChange={next => { if (!isAddingGuest) setGuestDialogOpen(next) }}
+          >
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+              >
+                <UserPlusIcon className="size-3.5" />
+                {t('addGuestTrigger')}
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{t('addGuestDialogTitle')}</DialogTitle>
+                <DialogDescription>{t('addGuestDialogDescription')}</DialogDescription>
+              </DialogHeader>
+              <form
+                onSubmit={e => { e.preventDefault(); handleAddGuest() }}
+                className="flex flex-col gap-4"
+              >
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="gs-guest-name">{t('addGuestLabel')}</Label>
+                  <Input
+                    id="gs-guest-name"
+                    ref={guestNameInputRef}
+                    value={guestName}
+                    onChange={e => setGuestName(e.target.value)}
+                    placeholder={t('addGuestPlaceholder')}
+                    disabled={isAddingGuest}
+                    autoFocus
+                  />
+                </div>
+                <DialogFooter>
+                  <Button type="submit" disabled={isAddingGuest || !guestName.trim()}>
+                    {isAddingGuest
+                      ? <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      : <UserPlusIcon className="size-3.5" />}
+                    {t('addGuestButton')}
+                  </Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
       </section>
 
@@ -290,6 +409,7 @@ export function GroupSettings({
               title={t('deleteGroupTitle')}
               description={t('deleteGroupDesc')}
               confirmLabel={t('deleteGroupConfirm')}
+              cancelLabel={tc('cancel')}
               variant="destructive"
               onConfirm={handleDelete}
               isPending={isPending}

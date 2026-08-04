@@ -38,10 +38,15 @@ function extractNeonAuthCookies(headers: Headers): string {
 }
 
 function getOrigin(request: Request): string {
+  // Deliberately do NOT fall back to this app's own origin: better-auth's
+  // origin-check middleware treats a missing/"null" Origin on cookie-bearing
+  // state-changing requests as a hard reject ("Missing or null Origin").
+  // Substituting our trusted origin here would launder that rejection into
+  // an automatic pass for any client that omits both headers.
   return (
     request.headers.get('origin') ||
     request.headers.get('referer')?.split('/').slice(0, 3).join('/') ||
-    new URL(request.url).origin
+    'null'
   )
 }
 

@@ -46,7 +46,9 @@ async function exchangeVerifier(request: NextRequest): Promise<NextResponse | nu
     const v = request.headers.get(h)
     if (v) reqHeaders.set(h, v)
   }
-  reqHeaders.set('Origin', request.headers.get('origin') || request.nextUrl.origin)
+  // Don't fall back to this app's own origin when the client sent none — see
+  // the matching comment in the api/auth proxy route for why.
+  reqHeaders.set('Origin', request.headers.get('origin') || 'null')
   reqHeaders.set('Cookie', neonCookies)
   reqHeaders.set('X-Neon-Auth-Next-Middleware', 'true')
 

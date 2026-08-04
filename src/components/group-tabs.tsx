@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { useTranslations } from 'next-intl'
@@ -27,7 +27,6 @@ export function GroupTabs({ children, counts, groupId }: GroupTabsProps) {
 
 function GroupTabsBar({ children, counts }: { children: React.ReactNode; counts?: Partial<Record<string, number>> }) {
   const { prefetch } = useGroupStatsCache()
-  const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const t = useTranslations('group.tabs')
@@ -75,7 +74,11 @@ function GroupTabsBar({ children, counts }: { children: React.ReactNode; counts?
     setTab(value)
     const params = new URLSearchParams(searchParams.toString())
     params.set('tab', value)
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+    // Native History API instead of router.replace(): this only needs to sync
+    // the URL for client-rendered tab state, and router.replace() on a dynamic
+    // route triggers a full server round-trip (re-running the page's queries)
+    // for no reason.
+    window.history.replaceState(null, '', `${pathname}?${params.toString()}`)
   }
 
   return (

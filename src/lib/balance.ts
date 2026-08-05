@@ -5,12 +5,12 @@ import type { Balance } from '@/types/database'
 type DebtRow = { group_id: string; from_user_id: string; from_user_name: string; to_user_id: string; to_user_name: string; amount: number; currency: string; date: string; expense_title: string }
 type SettlementRow = { group_id: string; paid_by: string; paid_to: string; amount: number; currency: string; date: string }
 
-export async function computeBalances(groupId: string, groupCurrency: string): Promise<Balance[]> {
-  const balancesByGroup = await computeBalancesForGroups([{ id: groupId, currency: groupCurrency }])
+export async function computeBalances(groupId: string, groupCurrency: string, excludeSettlementId?: string): Promise<Balance[]> {
+  const balancesByGroup = await computeBalancesForGroups([{ id: groupId, currency: groupCurrency }], excludeSettlementId)
   return balancesByGroup.get(groupId) ?? []
 }
 
-export async function computeBalancesForGroups(groups: { id: string; currency: string }[]): Promise<Map<string, Balance[]>> {
+export async function computeBalancesForGroups(groups: { id: string; currency: string }[], excludeSettlementId?: string): Promise<Map<string, Balance[]>> {
   if (groups.length === 0) return new Map()
 
   const groupIds = groups.map(g => g.id)
@@ -38,6 +38,7 @@ export async function computeBalancesForGroups(groups: { id: string; currency: s
       SELECT group_id, paid_by, paid_to, amount::float AS amount, currency, created_at::date::text AS date
       FROM settlements
       WHERE group_id = ANY(${groupIds})
+        AND id IS DISTINCT FROM ${excludeSettlementId ?? null}
     `,
   ]) as [DebtRow[], SettlementRow[]]
 

@@ -20,6 +20,7 @@ import { getCategoryIcon, EXPENSE_CATEGORIES } from '@/lib/categories'
 import { deleteExpense, updateExpense } from '@/actions/expense-actions'
 import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
+import { computeEqualSplits } from '@/lib/splits'
 import type { ExpenseWithPayer } from '@/types/database'
 import { useTranslations, useLocale } from 'next-intl'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
@@ -37,18 +38,6 @@ interface ExpenseDetailProps {
   members: Member[]
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-function computeEqualSplits(amount: number, memberIds: string[]): Record<string, number> {
-  if (memberIds.length === 0) return {}
-  const cents = Math.round(amount * 100)
-  const perCents = Math.floor(cents / memberIds.length)
-  const remainder = cents - perCents * memberIds.length
-  const splits: Record<string, number> = {}
-  memberIds.forEach((id, i) => {
-    splits[id] = (perCents + (i < remainder ? 1 : 0)) / 100
-  })
-  return splits
 }
 
 export function ExpenseDetail({ expense, groupId, currentUserId, members, open, onOpenChange }: ExpenseDetailProps) {

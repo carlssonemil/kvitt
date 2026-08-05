@@ -18,6 +18,7 @@ import { createExpense } from '@/actions/expense-actions'
 import { useGroupStatsCache } from '@/components/group-stats-cache'
 import { formatNumber } from '@/components/currency'
 import { SUPPORTED_CURRENCIES, type SplitType } from '@/lib/constants'
+import { computeEqualSplits } from '@/lib/splits'
 import { useTranslations, useLocale } from 'next-intl'
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion'
 
@@ -33,18 +34,6 @@ interface CreateExpenseDialogProps {
   members: Member[]
   currentUserId: string
   triggerClassName?: string
-}
-
-function computeEqualSplits(amount: number, memberIds: string[]): Record<string, number> {
-  if (memberIds.length === 0) return {}
-  const cents = Math.round(amount * 100)
-  const perCents = Math.floor(cents / memberIds.length)
-  const remainder = cents - perCents * memberIds.length
-  const splits: Record<string, number> = {}
-  memberIds.forEach((id, i) => {
-    splits[id] = (perCents + (i < remainder ? 1 : 0)) / 100
-  })
-  return splits
 }
 
 export function CreateExpenseDialog({ groupId, currency, members, currentUserId, triggerClassName }: CreateExpenseDialogProps) {

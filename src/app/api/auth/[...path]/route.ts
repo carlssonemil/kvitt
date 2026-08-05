@@ -70,11 +70,20 @@ async function handler(
 
   const body = request.method !== 'GET' && request.method !== 'HEAD' ? await request.text() : undefined
 
-  const upstream = await fetch(upstreamURL.toString(), {
-    method: request.method,
-    headers: reqHeaders,
-    body: body || undefined,
-  })
+  let upstream: Response
+  try {
+    upstream = await fetch(upstreamURL.toString(), {
+      method: request.method,
+      headers: reqHeaders,
+      body: body || undefined,
+    })
+  } catch (err) {
+    console.error(`[auth proxy] upstream request to ${upstreamURL} failed:`, err)
+    return Response.json(
+      { error: 'auth_upstream_unavailable', message: 'The authentication service is temporarily unavailable. Please try again.' },
+      { status: 502 },
+    )
+  }
 
   // Build response headers, handling Set-Cookie properly
   const respHeaders = new Headers()

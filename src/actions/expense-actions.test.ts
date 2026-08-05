@@ -147,9 +147,13 @@ describe('createExpense', () => {
 
     expect(result).toEqual({})
     const insertCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('INSERT INTO expenses'))
-    expect(insertCall).toBeTruthy()
+    expect(insertCall?.slice(1)).toEqual(['group-1', 'payer-1', 'Dinner', 30, 'EUR', '2024-01-01', null, null, 'user-1'])
     const splitInserts = sqlMock.mock.calls.filter(([s]) => textOf(s).includes('INSERT INTO expense_splits'))
     expect(splitInserts).toHaveLength(2)
+    expect(splitInserts.map(call => call.slice(1))).toEqual([
+      ['expense-1', 'payer-1', 10],
+      ['expense-1', 'member-2', 20],
+    ])
     expect(revalidatePath).toHaveBeenCalledWith('/groups/group-1')
   })
 
@@ -187,11 +191,15 @@ describe('updateExpense', () => {
 
     expect(result).toEqual({})
     const updateCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('UPDATE expenses'))
-    expect(updateCall).toBeTruthy()
+    expect(updateCall?.slice(1)).toEqual(['Dinner', 30, 'EUR', 'payer-1', '2024-01-01', null, null, 'expense-1', 'group-1'])
     const deleteCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('DELETE FROM expense_splits'))
     expect(deleteCall?.slice(1)).toEqual(['expense-1'])
     const splitInserts = sqlMock.mock.calls.filter(([s]) => textOf(s).includes('INSERT INTO expense_splits'))
     expect(splitInserts).toHaveLength(2)
+    expect(splitInserts.map(call => call.slice(1))).toEqual([
+      ['expense-1', 'payer-1', 15],
+      ['expense-1', 'member-2', 15],
+    ])
     expect(revalidatePath).toHaveBeenCalledWith('/groups/group-1')
   })
 })

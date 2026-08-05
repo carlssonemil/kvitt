@@ -45,7 +45,7 @@ beforeEach(() => {
 
   sqlMock.mockImplementation((strings: TemplateStringsArray, ...values: unknown[]) => {
     const text = textOf(strings)
-    if (text.includes('SET claim_token = NULL')) {
+    if (text.includes('SET claim_token = NULL') && text.includes('RETURNING id')) {
       return Promise.resolve([{ id: GUEST_ID }])
     }
     if (text.includes('SELECT group_id FROM group_members')) {
@@ -187,7 +187,7 @@ describe('removeMember', () => {
     expect(result).toEqual({ error: 'Cannot remove the group creator.' })
   })
 
-  it('removes the membership and cleans up an unreferenced guest', async () => {
+  it('removes the membership and issues the guarded guest-cleanup delete', async () => {
     const fd = new FormData()
     fd.set('group_id', GROUP_ID)
     fd.set('user_id', 'guest-target')

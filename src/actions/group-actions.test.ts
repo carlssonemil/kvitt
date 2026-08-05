@@ -88,6 +88,8 @@ describe('createGroup', () => {
     expect(result).toEqual({})
     const insertCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('INSERT INTO groups'))
     expect(insertCall?.slice(1, 4)).toEqual(['Trip', null, 'EUR'])
+    expect(insertCall?.[4]).toBe('user-1')
+    expect(insertCall?.[5]).toHaveLength(12)
     expect(revalidatePath).toHaveBeenCalledWith('/groups')
   })
 })
@@ -165,6 +167,8 @@ describe('hideGroup / unhideGroup', () => {
     expect(result).toEqual({})
     const updateCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('SET hidden_at = NULL'))
     expect(updateCall?.slice(1)).toEqual(['group-1', 'user-1'])
+    expect(revalidatePath).toHaveBeenCalledWith('/groups')
+    expect(revalidatePath).toHaveBeenCalledWith('/groups/group-1')
   })
 })
 

@@ -95,9 +95,10 @@ export interface Balance {
   to_user_name: string
   amount: number    // always in group currency
   currency: string  // always groupCurrency
-  breakdown: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
+  breakdown: { expense_title: string; amount: number; currency: string; convertedAmount?: number; conversionFailed?: boolean }[]
   offset?: number
-  offsetBreakdown?: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
+  offsetBreakdown?: { expense_title: string; amount: number; currency: string; convertedAmount?: number; conversionFailed?: boolean }[]
+  hasConversionWarning?: boolean
 }
 
 export interface GroupStats {

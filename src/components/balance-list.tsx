@@ -3,10 +3,11 @@
 import type { Balance } from '@/types/database'
 import { Currency } from '@/components/currency'
 import { SettleUpDialog } from '@/components/settle-up-dialog'
-import { CheckCircle2Icon, ChevronDownIcon } from 'lucide-react'
+import { AlertTriangleIcon, CheckCircle2Icon, ChevronDownIcon } from 'lucide-react'
 import { EmptyState } from '@/components/empty-state'
 import { Button } from '@/components/ui/button'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { useTranslations } from 'next-intl'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -46,8 +47,16 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
               {` ${t('owes')} `}
               <span className="font-medium">{shortenTo ? tc('you') : balance.to_user_name}</span>
             </p>
-            <p className="text-base font-semibold">
+            <p className="text-base font-semibold flex items-center gap-1.5">
               <Currency amount={balance.amount} currency={balance.currency} />
+              {balance.hasConversionWarning && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <AlertTriangleIcon className="size-3.5 shrink-0 text-amber-500" aria-label={t('conversionUnavailable')} />
+                  </TooltipTrigger>
+                  <TooltipContent>{t('conversionUnavailable')}</TooltipContent>
+                </Tooltip>
+              )}
             </p>
           </div>
           <ChevronDownIcon className="size-4 shrink-0 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
@@ -62,6 +71,14 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
                     · <Currency amount={item.amount} currency={item.currency} className="inline" />
                     {item.convertedAmount != null && (
                       <span className="text-muted-foreground/60"> (~<Currency amount={item.convertedAmount} currency={balance.currency} className="inline" />)</span>
+                    )}
+                    {item.conversionFailed && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <AlertTriangleIcon className="ml-1 size-3 inline-block align-text-top text-amber-500" aria-label={t('conversionUnavailable')} />
+                        </TooltipTrigger>
+                        <TooltipContent>{t('conversionUnavailable')}</TooltipContent>
+                      </Tooltip>
                     )}
                   </span>
                 )}
@@ -82,6 +99,14 @@ function BalanceRow({ balance, groupId, groupCurrency, members, showSettleUp, sh
                   · −<Currency amount={item.amount} currency={item.currency} className="inline" />
                   {item.convertedAmount != null && (
                     <span className="text-muted-foreground/60"> (~<Currency amount={item.convertedAmount} currency={balance.currency} className="inline" />)</span>
+                  )}
+                  {item.conversionFailed && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <AlertTriangleIcon className="ml-1 size-3 inline-block align-text-top text-amber-500" aria-label={t('conversionUnavailable')} />
+                      </TooltipTrigger>
+                      <TooltipContent>{t('conversionUnavailable')}</TooltipContent>
+                    </Tooltip>
                   )}
                 </span>
               </p>

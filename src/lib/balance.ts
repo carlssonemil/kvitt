@@ -81,38 +81,45 @@ async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], 
     ? await getMultiDateConversions(groupCurrency, [...allDates])
     : new Map<string, Record<string, number>>()
 
-  function toGroupCurrency(amount: number, currency: string, date: string): number {
-    if (currency === groupCurrency) return amount
+  function toGroupCurrency(amount: number, currency: string, date: string): { amount: number; conversionFailed: boolean } {
+    if (currency === groupCurrency) return { amount, conversionFailed: false }
     const rate = conversionsByDate.get(date)?.[currency]
-    if (!rate) return 0
-    return amount / rate
+    if (!rate) {
+      console.warn(`toGroupCurrency: missing rate for ${currency} -> ${groupCurrency} on ${date}, falling back to raw amount`)
+      return { amount, conversionFailed: true }
+    }
+    return { amount: amount / rate, conversionFailed: false }
   }
 
+  type BreakdownItem = { expense_title: string; amount: number; currency: string; convertedAmount?: number; conversionFailed?: boolean }
   type Group = {
     from_user_id: string
     from_user_name: string
     to_user_id: string
     to_user_name: string
     total: number  // in group currency
-    breakdown: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
+    breakdown: BreakdownItem[]
+    hasConversionWarning: boolean
     offset?: number
-    offsetBreakdown?: { expense_title: string; amount: number; currency: string; convertedAmount?: number }[]
+    offsetBreakdown?: BreakdownItem[]
   }
   const groups = new Map<string, Group>()
 
   for (const row of debtRows) {
     const key = `${row.from_user_id}|${row.to_user_id}`
-    const converted = toGroupCurrency(row.amount, row.currency, row.date)
-    const breakdownItem = {
+    const { amount: converted, conversionFailed } = toGroupCurrency(row.amount, row.currency, row.date)
+    const breakdownItem: BreakdownItem = {
       expense_title: row.expense_title,
       amount: row.amount,
       currency: row.currency,
-      convertedAmount: row.currency !== groupCurrency ? Math.round(converted * 100) / 100 : undefined,
+      convertedAmount: row.currency !== groupCurrency && !conversionFailed ? Math.round(converted * 100) / 100 : undefined,
+      conversionFailed: conversionFailed || undefined,
     }
     const g = groups.get(key)
     if (g) {
       g.total = Math.round((g.total + converted) * 100) / 100
       g.breakdown.push(breakdownItem)
+      if (conversionFailed) g.hasConversionWarning = true
     } else {
       groups.set(key, {
         from_user_id: row.from_user_id,
@@ -121,6 +128,7 @@ async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], 
         to_user_name: row.to_user_name,
         total: converted,
         breakdown: [breakdownItem],
+        hasConversionWarning: conversionFailed,
       })
     }
   }
@@ -130,8 +138,9 @@ async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], 
     const key = `${s.paid_by}|${s.paid_to}`
     const g = groups.get(key)
     if (g) {
-      const converted = toGroupCurrency(s.amount, s.currency, s.date)
+      const { amount: converted, conversionFailed } = toGroupCurrency(s.amount, s.currency, s.date)
       g.total = Math.round((g.total - converted) * 100) / 100
+      if (conversionFailed) g.hasConversionWarning = true
     }
   }
 
@@ -146,11 +155,13 @@ async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], 
       g.offset = reverse.total
       g.offsetBreakdown = reverse.breakdown
       g.total = Math.round((g.total - reverse.total) * 100) / 100
+      g.hasConversionWarning = g.hasConversionWarning || reverse.hasConversionWarning
       groups.delete(reverseKey)
     } else {
       reverse.offset = g.total
       reverse.offsetBreakdown = g.breakdown
       reverse.total = Math.round((reverse.total - g.total) * 100) / 100
+      reverse.hasConversionWarning = reverse.hasConversionWarning || g.hasConversionWarning
       groups.delete(key)
     }
   }
@@ -169,6 +180,7 @@ async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], 
       breakdown: g.breakdown,
       offset: g.offset,
       offsetBreakdown: g.offsetBreakdown,
+      hasConversionWarning: g.hasConversionWarning || undefined,
     })
   }
 

@@ -120,7 +120,8 @@
     "youDontOweTitle": "You don't owe anyone",
     "youDontOweDesc": "Nothing you need to do right now.",
     "markSettled": "Mark as settled",
-    "offsetLabel": "Offset ({name} {verb} back)"
+    "offsetLabel": "Offset ({name} {verb} back)",
+    "conversionUnavailable": "Exchange rate unavailable for this date — showing the original, unconverted amount"
   },
   "expense": {
     "add": "Add expense",

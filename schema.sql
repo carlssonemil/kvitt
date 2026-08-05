@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS expenses (
 
 CREATE INDEX IF NOT EXISTS idx_expenses_group_id ON expenses(group_id);
 CREATE INDEX IF NOT EXISTS idx_expenses_paid_by  ON expenses(paid_by);
+CREATE INDEX IF NOT EXISTS idx_expenses_group_date_created ON expenses(group_id, date DESC, created_at DESC, id DESC);
 
 -- Expense splits (how an expense is divided among members)
 CREATE TABLE IF NOT EXISTS expense_splits (
@@ -90,3 +91,4 @@ CREATE TABLE IF NOT EXISTS settlements (
 CREATE INDEX IF NOT EXISTS idx_settlements_group_id ON settlements(group_id);
 CREATE INDEX IF NOT EXISTS idx_settlements_paid_by  ON settlements(paid_by);
 CREATE INDEX IF NOT EXISTS idx_settlements_paid_to  ON settlements(paid_to);
+CREATE INDEX IF NOT EXISTS idx_settlements_group_created ON settlements(group_id, created_at DESC, id DESC);

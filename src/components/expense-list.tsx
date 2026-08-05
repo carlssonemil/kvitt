@@ -15,18 +15,14 @@ import { Button } from '@/components/ui/button'
 import { ExpenseDetail } from '@/components/expense-detail'
 import { SettlementDetail } from '@/components/settlement-detail'
 import type { ExpenseWithPayer } from '@/types/database'
-import type { SettlementWithUsers } from '@/lib/queries'
+import type { FeedCursor, FeedItem, FeedFilters, SettlementWithUsers } from '@/lib/queries'
+import { getGroupFeedAction } from '@/actions/group-actions'
 import { Currency } from '@/components/currency'
-import { isWithinInterval, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from 'date-fns'
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, subWeeks, subMonths } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 import { useTranslations, useLocale } from 'next-intl'
 
-const PAGE_SIZE = 30
 const PULL_THRESHOLD = 80
-
-type FeedItem =
-  | { kind: 'expense'; data: ExpenseWithPayer; sortKey: string }
-  | { kind: 'settlement'; data: SettlementWithUsers; sortKey: string }
 
 interface Member {
   id: string
@@ -35,13 +31,20 @@ interface Member {
 }
 
 interface ExpenseListProps {
-  expenses: ExpenseWithPayer[]
-  settlements: SettlementWithUsers[]
+  initialItems: FeedItem[]
+  initialCursor: FeedCursor | null
+  initialHasMore: boolean
+  isGroupEmpty: boolean
+  availableCategories: string[]
   groupId: string
   currency: string
   currentUserId: string
   members: Member[]
   action?: React.ReactNode
+}
+
+function formatDateParam(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
 function ExpenseRow({ expense, groupId, currentUserId, members, locale }: { expense: ExpenseWithPayer; groupId: string; currentUserId: string; members: Member[]; locale: string }) {
@@ -138,7 +141,7 @@ function formatMonthLabel(monthKey: string, intlLocale: string): string {
   return d.toLocaleDateString(intlLocale, { month: 'long', year: 'numeric' })
 }
 
-export function ExpenseList({ expenses, settlements, groupId, currency, currentUserId, members, action }: ExpenseListProps) {
+export function ExpenseList({ initialItems, initialCursor, initialHasMore, isGroupEmpty, availableCategories, groupId, currency, currentUserId, members, action }: ExpenseListProps) {
   const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('expenseList')
@@ -150,9 +153,25 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined)
 
-  // Infinite scroll
-  const [displayLimit, setDisplayLimit] = useState(PAGE_SIZE)
+  // Server-paginated feed
+  const [items, setItems] = useState<FeedItem[]>(initialItems)
+  const [cursor, setCursor] = useState<FeedCursor | null>(initialCursor)
+  const [hasMore, setHasMore] = useState(initialHasMore)
+  const [isLoadingPage1, setIsLoadingPage1] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const requestSeqRef = useRef(0)
   const sentinelRef = useRef<HTMLDivElement>(null)
+
+  function buildFilters(): FeedFilters {
+    const filters: FeedFilters = {}
+    if (typeFilter !== 'all') filters.type = typeFilter
+    if (categoryFilter !== 'all') filters.category = categoryFilter
+    if (dateRange?.from) {
+      filters.dateFrom = formatDateParam(dateRange.from)
+      filters.dateTo = formatDateParam(dateRange.to ?? dateRange.from)
+    }
+    return filters
+  }
 
   // Pull to refresh
   const [pullDistance, setPullDistance] = useState(0)
@@ -216,57 +235,60 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
     }
   }, [router])
 
-  // Infinite scroll sentinel observer
+  // Load page 1 whenever filters change, or whenever the server hands us fresh seed data
+  // (initial mount, router.refresh(), or a revalidatePath()-driven re-render after a mutation).
+  useEffect(() => {
+    const filtersActive = typeFilter !== 'all' || categoryFilter !== 'all' || !!dateRange?.from
+    if (!filtersActive) {
+      setItems(initialItems)
+      setCursor(initialCursor)
+      setHasMore(initialHasMore)
+      setIsLoadingPage1(false)
+      return
+    }
+    const seq = ++requestSeqRef.current
+    setIsLoadingPage1(true)
+    getGroupFeedAction(groupId, null, buildFilters()).then(res => {
+      if (seq !== requestSeqRef.current) return
+      if (res.page) {
+        setItems(res.page.items)
+        setCursor(res.page.nextCursor)
+        setHasMore(res.page.hasMore)
+      }
+      setIsLoadingPage1(false)
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeFilter, categoryFilter, dateRange, initialItems, initialCursor, initialHasMore, groupId])
+
+  // Infinite scroll sentinel observer: fetches the next page from the server on intersect
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
-          setDisplayLimit(prev => prev + PAGE_SIZE)
-        }
+        if (!entries[0]?.isIntersecting) return
+        if (!hasMore || isLoadingMore || isLoadingPage1) return
+        const seq = ++requestSeqRef.current
+        setIsLoadingMore(true)
+        getGroupFeedAction(groupId, cursor, buildFilters()).then(res => {
+          if (seq !== requestSeqRef.current) return
+          if (res.page) {
+            const page = res.page
+            setItems(prev => [...prev, ...page.items])
+            setCursor(page.nextCursor)
+            setHasMore(page.hasMore)
+          }
+          setIsLoadingMore(false)
+        })
       },
       { threshold: 0.1 }
     )
     observer.observe(sentinel)
     return () => observer.disconnect()
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasMore, isLoadingMore, isLoadingPage1, cursor, typeFilter, categoryFilter, dateRange, groupId])
 
-  // Reset display limit when filters change
-  useEffect(() => {
-    setDisplayLimit(PAGE_SIZE)
-  }, [typeFilter, categoryFilter, dateRange])
-
-  const availableCategories = React.useMemo(() => {
-    const seen = new Set<string>()
-    for (const e of expenses) {
-      seen.add(e.category ?? 'uncategorized')
-    }
-    return Array.from(seen).sort()
-  }, [expenses])
-
-  const feed: FeedItem[] = React.useMemo(() => [
-    ...expenses.map(e => { const d = new Date(e.date).toISOString(); const ca = new Date(e.created_at).toISOString(); return { kind: 'expense' as const, data: e, sortKey: d.slice(0, 10) + ca } }),
-    ...settlements.map(s => { const ca = new Date(s.created_at).toISOString(); return { kind: 'settlement' as const, data: s, sortKey: ca.slice(0, 10) + ca } }),
-  ].sort((a, b) => b.sortKey.localeCompare(a.sortKey)), [expenses, settlements])
-
-  const filteredFeed = React.useMemo(() => feed.filter(item => {
-    if (typeFilter !== 'all' && item.kind !== typeFilter) return false
-    if (categoryFilter !== 'all') {
-      if (item.kind !== 'expense') return false
-      const itemCategory = item.data.category ?? 'uncategorized'
-      if (itemCategory !== categoryFilter) return false
-    }
-    if (dateRange?.from) {
-      const itemDate = new Date(item.kind === 'expense' ? item.data.date : item.data.created_at)
-      const from = startOfDay(dateRange.from)
-      const to = endOfDay(dateRange.to ?? dateRange.from)
-      if (!isWithinInterval(itemDate, { start: from, end: to })) return false
-    }
-    return true
-  }), [feed, typeFilter, categoryFilter, dateRange])
-
-  if (feed.length === 0) {
+  if (isGroupEmpty) {
     return (
       <div className="flex flex-col gap-4">
         {action && (
@@ -285,13 +307,10 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
 
   const hasActiveFilter = typeFilter !== 'all' || categoryFilter !== 'all' || !!dateRange?.from
 
-  const visibleFeed = filteredFeed.slice(0, displayLimit)
-  const hasMore = filteredFeed.length > displayLimit
-
   const rows: React.ReactNode[] = []
   let lastMonth: string | null = null
 
-  for (const item of visibleFeed) {
+  for (const item of items) {
     const month = getMonthKey(item)
     if (month !== lastMonth) {
       rows.push(
@@ -430,7 +449,11 @@ export function ExpenseList({ expenses, settlements, groupId, currency, currentU
         )}
       </motion.div>
 
-      {filteredFeed.length === 0 ? (
+      {isLoadingPage1 && items.length === 0 ? (
+        <div className="flex items-center justify-center py-8">
+          <Spinner className="size-5 text-muted-foreground" />
+        </div>
+      ) : items.length === 0 ? (
         <EmptyState
           icon={ReceiptIcon}
           title={t('noMatch.title')}

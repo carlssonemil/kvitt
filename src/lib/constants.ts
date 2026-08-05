@@ -19,3 +19,5 @@ export const ROUTES = {
 
 export const GROUP_TABS = ['expenses', 'balances', 'stats', 'settings'] as const
 export type GroupTab = typeof GROUP_TABS[number]
+
+export const FEED_PAGE_SIZE = 30

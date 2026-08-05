@@ -3,11 +3,26 @@
 import { neonAuth } from '@/lib/auth/server'
 import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
-import { getGroupStats } from '@/lib/queries'
+import { getGroupStats, getGroupFeedPage } from '@/lib/queries'
+import type { FeedCursor, FeedFilters, FeedPage } from '@/lib/queries'
 import { revalidatePath } from 'next/cache'
 import { ROUTES, SUPPORTED_CURRENCIES } from '@/lib/constants'
+import { EXPENSE_CATEGORIES } from '@/lib/categories'
 import type { GroupStats } from '@/types/database'
 import { nanoid } from 'nanoid'
+
+const CATEGORY_KEYS = new Set<string>(EXPENSE_CATEGORIES.map(c => c.key))
+
+function isValidCursor(cursor: unknown): cursor is FeedCursor | null {
+  if (cursor === null) return true
+  if (typeof cursor !== 'object') return false
+  const c = cursor as Record<string, unknown>
+  return typeof c.sortDate === 'string' && typeof c.createdAt === 'string' && typeof c.id === 'string'
+}
+
+function isValidDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+}
 
 export async function createGroup(formData: FormData): Promise<{ error?: string }> {
   const { session, user } = await neonAuth()
@@ -219,6 +234,45 @@ export async function getGroupStatsAction(groupId: string): Promise<{ stats?: Gr
     return { stats }
   } catch (err) {
     console.error('getGroupStatsAction error:', err)
+    return { error: 'Something went wrong. Please try again.' }
+  }
+}
+
+export async function getGroupFeedAction(
+  groupId: string,
+  cursor: FeedCursor | null,
+  filters: FeedFilters
+): Promise<{ page?: FeedPage; error?: string }> {
+  const { session, user } = await neonAuth()
+  if (!session || !user) return { error: 'Not authenticated' }
+
+  if (!isValidCursor(cursor)) return { error: 'Invalid cursor' }
+  if (filters.type !== undefined && filters.type !== 'expense' && filters.type !== 'settlement') {
+    return { error: 'Invalid filter' }
+  }
+  if (filters.category !== undefined && filters.category !== 'uncategorized' && !CATEGORY_KEYS.has(filters.category)) {
+    return { error: 'Invalid filter' }
+  }
+  if (filters.dateFrom !== undefined && !isValidDate(filters.dateFrom)) return { error: 'Invalid filter' }
+  if (filters.dateTo !== undefined && !isValidDate(filters.dateTo)) return { error: 'Invalid filter' }
+  if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) return { error: 'Invalid filter' }
+
+  try {
+    const dbUser = await ensureUser({
+      email: user.email ?? '',
+      name: user.name ?? null,
+      image: user.image ?? null,
+    })
+
+    const [membership] = await sql`
+      SELECT 1 FROM group_members WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
+    `
+    if (!membership) return { error: 'Not a member of this group' }
+
+    const page = await getGroupFeedPage(groupId, cursor, filters)
+    return { page }
+  } catch (err) {
+    console.error('getGroupFeedAction error:', err)
     return { error: 'Something went wrong. Please try again.' }
   }
 }

@@ -2,7 +2,7 @@ import { neonAuth } from '@/lib/auth/server'
 import { redirect, notFound } from 'next/navigation'
 import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
-import { getGroupExpenses, getGroupMembers, getGroupSettlements } from '@/lib/queries'
+import { getGroupMembers, getGroupFeedPage, getGroupFeedCounts, getGroupFeedCategories } from '@/lib/queries'
 import { computeBalances } from '@/lib/balance'
 import type { DbGroup } from '@/types/database'
 import Link from 'next/link'
@@ -46,10 +46,11 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
     WHERE group_id = ${id} AND user_id = ${dbUser.id} AND hidden_at IS NOT NULL
   `
 
-  const [members, expenses, settlements, balances, t, locale] = await Promise.all([
+  const [members, feedPage, feedCounts, feedCategories, balances, t, locale] = await Promise.all([
     getGroupMembers(id),
-    getGroupExpenses(id),
-    getGroupSettlements(id),
+    getGroupFeedPage(id, null, {}),
+    getGroupFeedCounts(id),
+    getGroupFeedCategories(id),
     computeBalances(id, group.currency),
     getTranslations('group'),
     getLocale(),
@@ -67,7 +68,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   // Suggest hiding the group once it's fully settled and has had at least some history
   const isFullySettled = !balances.some(b => b.from_user_id === dbUser.id || b.to_user_id === dbUser.id)
-  const hasHistory = expenses.length > 0 && settlements.length > 0
+  const hasHistory = feedCounts.expenseCount > 0 && feedCounts.settlementCount > 0
   const suggestHide = !group.hidden_at && isFullySettled && hasHistory
 
   const memberList = members.map(m => ({
@@ -114,13 +115,16 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
       </div>
 
       <GroupTabs groupId={id} counts={{
-        expenses: expenses.length + settlements.length,
+        expenses: feedCounts.expenseCount + feedCounts.settlementCount,
         balances: balances.filter(b => b.from_user_id === dbUser.id).length || undefined,
       }}>
         <TabsContent value="expenses">
           <ExpenseList
-            expenses={expenses}
-            settlements={settlements}
+            initialItems={feedPage.items}
+            initialCursor={feedPage.nextCursor}
+            initialHasMore={feedPage.hasMore}
+            isGroupEmpty={feedCounts.expenseCount === 0 && feedCounts.settlementCount === 0}
+            availableCategories={feedCategories}
             groupId={id}
             currency={group.currency}
             currentUserId={dbUser.id}

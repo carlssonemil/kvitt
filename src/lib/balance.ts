@@ -67,7 +67,7 @@ export async function computeBalancesForGroups(groups: { id: string; currency: s
   return result
 }
 
-async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], groupCurrency: string): Promise<Balance[]> {
+export async function buildBalances(debtRows: DebtRow[], settlements: SettlementRow[], groupCurrency: string): Promise<Balance[]> {
   // Collect all dates that require currency conversion
   const allDates = new Set<string>()
   for (const row of debtRows) {

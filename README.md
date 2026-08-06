@@ -1,6 +1,7 @@
-<img src="public/logo-192.png" alt="Kvitt logo" width="48" height="48" align="left" />
-
-# Kvitt
+<table><tr>
+<td><img src="public/logo-192.png" alt="Kvitt logo" width="48" height="48" /></td>
+<td><h1>Kvitt</h1></td>
+</tr></table>
 
 Split bills and track shared expenses with friends. Kvitt makes it easy to see who owes what and settle up.
 

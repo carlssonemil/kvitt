@@ -41,6 +41,7 @@ yarn-error.log*
 /DESIGN.md
 /PRODUCT.md
 /docs/superpowers/
+/tasks/
 
 # typescript
 *.tsbuildinfo

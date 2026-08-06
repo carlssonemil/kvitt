@@ -1,6 +1,20 @@
+<img src="public/logo-192.png" alt="Kvitt logo" width="48" height="48" align="left" />
+
 # Kvitt
 
 Split bills and track shared expenses with friends. Kvitt makes it easy to see who owes what and settle up.
+
+## Features
+
+- Split any expense your way — equally, by exact amounts, or by percentage
+- Balances that stay current — update the moment an expense or settlement is added
+- See where the money goes — spending broken down by category and month
+- Any currency, converted automatically at today's rate
+- Create groups and invite members via link
+- Record settlements to clear debts
+- Expense history with filtering and infinite scroll
+- English and Swedish, with more locales easy to add
+- Light/dark mode
 
 ## Stack
 
@@ -8,20 +22,15 @@ Split bills and track shared expenses with friends. Kvitt makes it easy to see w
 - **Database:** Neon Postgres
 - **Auth:** Neon Auth
 - **UI:** shadcn/ui + Tailwind CSS
+- **i18n:** next-intl (English, Swedish)
+- **Animation:** Framer Motion
+- **Charts:** Recharts
+- **Testing:** Vitest
 - **Deployment:** Vercel
-
-## Features
-
-- Create groups and invite members via link
-- Add expenses with flexible split options (equal, exact, percentage)
-- Track balances across multiple currencies with live exchange rates
-- Record settlements to clear debts
-- Expense history with filtering and infinite scroll
-- Light/dark mode
 
 ## Local Development
 
-**Prerequisites:** Node.js 20+, a [Neon](https://neon.tech) database
+**Prerequisites:** Node.js 22.13+ (see `.tool-versions`; `asdf install` picks it up automatically), a [Neon](https://neon.tech) database
 
 1. Clone the repo and install dependencies:
 
@@ -60,3 +69,10 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
+
+### Testing
+
+```bash
+npm test          # run once
+npm run test:watch  # watch mode
+```

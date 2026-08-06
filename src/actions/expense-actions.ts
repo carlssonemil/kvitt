@@ -99,12 +99,13 @@ export async function createExpense(formData: FormData): Promise<{ error?: strin
       RETURNING id
     ` as { id: string }[]
 
-    for (const [userId, splitAmount] of splitEntries) {
-      await sql`
-        INSERT INTO expense_splits (expense_id, user_id, amount)
-        VALUES (${expense!.id}, ${userId}, ${splitAmount})
-      `
-    }
+    const splitUserIds = splitEntries.map(([userId]) => userId)
+    const splitAmounts = splitEntries.map(([, splitAmount]) => splitAmount)
+
+    await sql`
+      INSERT INTO expense_splits (expense_id, user_id, amount)
+      SELECT ${expense!.id}, * FROM unnest(${splitUserIds}::uuid[], ${splitAmounts}::numeric[]) AS t(user_id, amount)
+    `
 
     revalidatePath(ROUTES.GROUP(groupId))
     return {}
@@ -135,12 +136,13 @@ export async function updateExpense(formData: FormData): Promise<{ error?: strin
 
     await sql`DELETE FROM expense_splits WHERE expense_id = ${expenseId}`
 
-    for (const [userId, splitAmount] of splitEntries) {
-      await sql`
-        INSERT INTO expense_splits (expense_id, user_id, amount)
-        VALUES (${expenseId}, ${userId}, ${splitAmount})
-      `
-    }
+    const splitUserIds = splitEntries.map(([userId]) => userId)
+    const splitAmounts = splitEntries.map(([, splitAmount]) => splitAmount)
+
+    await sql`
+      INSERT INTO expense_splits (expense_id, user_id, amount)
+      SELECT ${expenseId}, * FROM unnest(${splitUserIds}::uuid[], ${splitAmounts}::numeric[]) AS t(user_id, amount)
+    `
 
     revalidatePath(ROUTES.GROUP(groupId))
     return {}

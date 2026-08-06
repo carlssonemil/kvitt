@@ -139,7 +139,7 @@ describe('createExpense', () => {
     expect(result).toEqual({ error: 'Split includes users who are not members of this group' })
   })
 
-  it('inserts the expense and one split row per entry, then revalidates', async () => {
+  it('inserts the expense and batches all split rows in a single insert, then revalidates', async () => {
     const result = await createExpense(formData({
       splits: JSON.stringify({ 'payer-1': 10, 'member-2': 20 }),
       amount: '30',
@@ -149,10 +149,11 @@ describe('createExpense', () => {
     const insertCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('INSERT INTO expenses'))
     expect(insertCall?.slice(1)).toEqual(['group-1', 'payer-1', 'Dinner', 30, 'EUR', '2024-01-01', null, null, 'user-1'])
     const splitInserts = sqlMock.mock.calls.filter(([s]) => textOf(s).includes('INSERT INTO expense_splits'))
-    expect(splitInserts).toHaveLength(2)
-    expect(splitInserts.map(call => call.slice(1))).toEqual([
-      ['expense-1', 'payer-1', 10],
-      ['expense-1', 'member-2', 20],
+    expect(splitInserts).toHaveLength(1)
+    expect(splitInserts[0].slice(1)).toEqual([
+      'expense-1',
+      ['payer-1', 'member-2'],
+      [10, 20],
     ])
     expect(revalidatePath).toHaveBeenCalledWith('/groups/group-1')
   })
@@ -195,10 +196,11 @@ describe('updateExpense', () => {
     const deleteCall = sqlMock.mock.calls.find(([s]) => textOf(s).includes('DELETE FROM expense_splits'))
     expect(deleteCall?.slice(1)).toEqual(['expense-1'])
     const splitInserts = sqlMock.mock.calls.filter(([s]) => textOf(s).includes('INSERT INTO expense_splits'))
-    expect(splitInserts).toHaveLength(2)
-    expect(splitInserts.map(call => call.slice(1))).toEqual([
-      ['expense-1', 'payer-1', 15],
-      ['expense-1', 'member-2', 15],
+    expect(splitInserts).toHaveLength(1)
+    expect(splitInserts[0].slice(1)).toEqual([
+      'expense-1',
+      ['payer-1', 'member-2'],
+      [15, 15],
     ])
     expect(revalidatePath).toHaveBeenCalledWith('/groups/group-1')
   })

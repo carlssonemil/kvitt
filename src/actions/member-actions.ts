@@ -6,6 +6,7 @@ import { ensureUser } from '@/lib/ensure-user'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/lib/constants'
 import { nanoid } from 'nanoid'
+import { computeBalances } from '@/lib/balance'
 
 export async function joinGroupByInvite(inviteCode: string): Promise<{ groupId?: string; error?: string }> {
   const { session, user } = await neonAuth()
@@ -57,10 +58,16 @@ export async function removeMember(formData: FormData): Promise<{ error?: string
       image: user.image ?? null,
     })
 
-    const [group] = await sql`SELECT created_by FROM groups WHERE id = ${groupId}` as { created_by: string }[]
+    const [group] = await sql`SELECT created_by, currency FROM groups WHERE id = ${groupId}` as { created_by: string; currency: string }[]
     if (!group) return { error: 'Group not found' }
     if (group.created_by !== dbUser.id) return { error: 'Only the group creator can remove members' }
     if (group.created_by === userId) return { error: 'Cannot remove the group creator.' }
+
+    const balances = await computeBalances(groupId, group.currency)
+    const hasOutstandingBalance = balances.some(b => b.from_user_id === userId || b.to_user_id === userId)
+    if (hasOutstandingBalance) {
+      return { error: 'This member has an outstanding balance. Settle up before removing them.' }
+    }
 
     const removedMembership = await sql`
       DELETE FROM group_members WHERE group_id = ${groupId} AND user_id = ${userId} RETURNING 1

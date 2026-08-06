@@ -1,18 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { claimGuest, joinGroupByInvite, removeMember, addGuest, getGuestClaimLink } from './member-actions'
 
-const { neonAuth, ensureUser, revalidatePath, sqlMock, transactionMock, state } = vi.hoisted(() => {
+const { neonAuth, ensureUser, revalidatePath, sqlMock, transactionMock, computeBalances, state } = vi.hoisted(() => {
   return {
     neonAuth: vi.fn(),
     ensureUser: vi.fn(),
     revalidatePath: vi.fn(),
     sqlMock: vi.fn(),
     transactionMock: vi.fn(),
+    computeBalances: vi.fn(),
     state: {
       membershipRows: [] as { group_id: string }[],
       inviteGroup: undefined as { id: string } | undefined,
       membershipCheckRows: [{ x: 1 }] as unknown[],
-      groupCreator: undefined as { created_by: string } | undefined,
+      groupCreator: undefined as { created_by: string; currency: string } | undefined,
       removedMembershipRows: [{ x: 1 }] as unknown[],
       claimTokenRow: undefined as { claim_token: string | null } | undefined,
     },
@@ -25,6 +26,7 @@ vi.mock('next/cache', () => ({ revalidatePath }))
 vi.mock('@/lib/db', () => ({
   sql: Object.assign(sqlMock, { transaction: transactionMock }),
 }))
+vi.mock('@/lib/balance', () => ({ computeBalances }))
 
 const CLAIM_TOKEN = 'claim-token-abc'
 const GUEST_ID = 'guest-1'
@@ -41,6 +43,7 @@ beforeEach(() => {
   neonAuth.mockResolvedValue({ session: {}, user: { email: 'me@example.com', name: 'Me', image: null } })
   ensureUser.mockResolvedValue({ id: REAL_USER_ID })
   transactionMock.mockResolvedValue(undefined)
+  computeBalances.mockResolvedValue([])
   state.membershipRows = [{ group_id: GROUP_ID }]
 
   sqlMock.mockImplementation((strings: TemplateStringsArray, ...values: unknown[]) => {
@@ -57,7 +60,7 @@ beforeEach(() => {
     if (text.includes('SELECT 1 FROM group_members WHERE group_id')) {
       return Promise.resolve(state.membershipCheckRows)
     }
-    if (text.includes('SELECT created_by FROM groups')) {
+    if (text.includes('SELECT created_by, currency FROM groups')) {
       return Promise.resolve(state.groupCreator ? [state.groupCreator] : [])
     }
     if (text.includes('RETURNING 1')) {
@@ -149,7 +152,7 @@ describe('joinGroupByInvite', () => {
 
 describe('removeMember', () => {
   beforeEach(() => {
-    state.groupCreator = { created_by: REAL_USER_ID }
+    state.groupCreator = { created_by: REAL_USER_ID, currency: 'SEK' }
     state.removedMembershipRows = [{ x: 1 }]
   })
 
@@ -166,7 +169,7 @@ describe('removeMember', () => {
   })
 
   it('rejects when the caller is not the group creator', async () => {
-    state.groupCreator = { created_by: 'someone-else' }
+    state.groupCreator = { created_by: 'someone-else', currency: 'SEK' }
 
     const fd = new FormData()
     fd.set('group_id', GROUP_ID)
@@ -195,11 +198,41 @@ describe('removeMember', () => {
     const result = await removeMember(fd)
 
     expect(result).toEqual({})
+    expect(computeBalances).toHaveBeenCalledWith(GROUP_ID, 'SEK')
     const guestDeleteCall = sqlMock.mock.calls.find(
       ([s]) => textOf(s).includes('NOT EXISTS (SELECT 1 FROM expenses WHERE paid_by')
     )
     expect(guestDeleteCall?.slice(1)).toEqual(Array(6).fill('guest-target'))
     expect(revalidatePath).toHaveBeenCalled()
+  })
+
+  it('rejects removal when the member owes money in the group', async () => {
+    computeBalances.mockResolvedValue([
+      { from_user_id: 'target-user', to_user_id: REAL_USER_ID, amount: 42 },
+    ])
+
+    const fd = new FormData()
+    fd.set('group_id', GROUP_ID)
+    fd.set('user_id', 'target-user')
+
+    const result = await removeMember(fd)
+
+    expect(result).toEqual({ error: 'This member has an outstanding balance. Settle up before removing them.' })
+    expect(sqlMock.mock.calls.find(([s]) => textOf(s).includes('DELETE FROM group_members'))).toBeUndefined()
+  })
+
+  it('rejects removal when the member is owed money in the group', async () => {
+    computeBalances.mockResolvedValue([
+      { from_user_id: REAL_USER_ID, to_user_id: 'target-user', amount: 42 },
+    ])
+
+    const fd = new FormData()
+    fd.set('group_id', GROUP_ID)
+    fd.set('user_id', 'target-user')
+
+    const result = await removeMember(fd)
+
+    expect(result).toEqual({ error: 'This member has an outstanding balance. Settle up before removing them.' })
   })
 
   it('returns "Not a member of this group" when the membership row was already gone', async () => {

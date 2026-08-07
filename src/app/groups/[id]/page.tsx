@@ -68,7 +68,7 @@ export default async function GroupPage({ params }: PageProps<'/groups/[id]'>) {
 
   // Suggest hiding the group once it's fully settled and has had at least some history
   const isFullySettled = !balances.some(b => b.from_user_id === dbUser.id || b.to_user_id === dbUser.id)
-  const hasHistory = feedCounts.expenseCount > 0 && feedCounts.settlementCount > 0
+  const hasHistory = feedCounts.expenseCount > 0 || feedCounts.settlementCount > 0
   const suggestHide = !group.hidden_at && isFullySettled && hasHistory
 
   const memberList = members.map(m => ({

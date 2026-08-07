@@ -52,23 +52,7 @@ export interface DbExpenseSplit {
   amount: number
 }
 
-export interface DbSettlement {
-  id: string
-  group_id: string
-  paid_by: string
-  paid_to: string
-  amount: number
-  currency: string
-  note: string | null
-  created_at: string
-}
-
 // ─── Derived / UI types ───────────────────────────────────────────────────────
-
-export interface GroupWithMemberCount extends DbGroup {
-  member_count: number
-  your_balance: number // positive = others owe you, negative = you owe others
-}
 
 export interface ExpenseWithPayer extends DbExpense {
   paid_by_name: string

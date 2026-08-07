@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/components/providers";
 import { SiteHeader } from "@/components/site-header";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
@@ -52,6 +52,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const locale = await getLocale();
+  const t = await getTranslations('common');
 
   return (
     <html
@@ -66,7 +67,7 @@ export default async function RootLayout({
               href="#main-content"
               className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded-md focus:bg-background focus:text-foreground focus:border focus:border-border focus:shadow-md"
             >
-              Skip to main content
+              {t('skipToMain')}
             </a>
             <ServiceWorkerRegistration />
             <SiteHeader />

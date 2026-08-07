@@ -3,6 +3,7 @@
 import { neonAuth } from '@/lib/auth/server'
 import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
+import { requireGroupMember } from '@/lib/auth/require-group-member'
 import { getGroupStats, getGroupFeedPage } from '@/lib/queries'
 import type { FeedCursor, FeedFilters, FeedPage } from '@/lib/queries'
 import { revalidatePath } from 'next/cache'
@@ -258,16 +259,8 @@ export async function getGroupFeedAction(
   if (filters.dateFrom && filters.dateTo && filters.dateFrom > filters.dateTo) return { error: 'Invalid filter' }
 
   try {
-    const dbUser = await ensureUser({
-      email: user.email ?? '',
-      name: user.name ?? null,
-      image: user.image ?? null,
-    })
-
-    const [membership] = await sql`
-      SELECT 1 FROM group_members WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
-    `
-    if (!membership) return { error: 'Not a member of this group' }
+    const membershipResult = await requireGroupMember(groupId, user)
+    if ('error' in membershipResult) return membershipResult
 
     const page = await getGroupFeedPage(groupId, cursor, filters)
     return { page }

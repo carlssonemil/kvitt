@@ -3,6 +3,7 @@
 import { neonAuth } from '@/lib/auth/server'
 import { sql } from '@/lib/db'
 import { ensureUser } from '@/lib/ensure-user'
+import { requireGroupMember } from '@/lib/auth/require-group-member'
 import { revalidatePath } from 'next/cache'
 import { ROUTES } from '@/lib/constants'
 import { nanoid } from 'nanoid'
@@ -104,16 +105,8 @@ export async function addGuest(formData: FormData): Promise<{ error?: string }> 
   if (name.length > 100) return { error: 'Name is too long' }
 
   try {
-    const dbUser = await ensureUser({
-      email: user.email ?? '',
-      name: user.name ?? null,
-      image: user.image ?? null,
-    })
-
-    const [membership] = await sql`
-      SELECT 1 FROM group_members WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
-    `
-    if (!membership) return { error: 'Not a member of this group' }
+    const membershipResult = await requireGroupMember(groupId, user)
+    if ('error' in membershipResult) return membershipResult
 
     const claimToken = nanoid(12)
     const syntheticEmail = `guest+${nanoid(16)}@guests.kvitt.internal`
@@ -144,16 +137,8 @@ export async function getGuestClaimLink(
   if (!session || !user) return { error: 'Not authenticated' }
 
   try {
-    const dbUser = await ensureUser({
-      email: user.email ?? '',
-      name: user.name ?? null,
-      image: user.image ?? null,
-    })
-
-    const [membership] = await sql`
-      SELECT 1 FROM group_members WHERE group_id = ${groupId} AND user_id = ${dbUser.id}
-    `
-    if (!membership) return { error: 'Not a member of this group' }
+    const membershipResult = await requireGroupMember(groupId, user)
+    if ('error' in membershipResult) return membershipResult
 
     const [guest] = await sql`
       SELECT u.claim_token

@@ -4,6 +4,7 @@ import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { authClient } from '@/lib/auth/client'
+import { runAuth } from '@/lib/auth/run-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -35,9 +36,9 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
 
     startTransition(async () => {
       setError(null)
-      const { error } = await authClient.signUp.email({ name, email: emailValue, password })
-      if (error) {
-        setError(error.message ?? 'Sign up failed')
+      const failure = await runAuth(() => authClient.signUp.email({ name, email: emailValue, password }))
+      if (failure) {
+        setError(failure.message ?? 'Sign up failed')
         return
       }
       setEmail(emailValue)
@@ -52,9 +53,9 @@ export function SignUpForm({ redirect }: { redirect?: string }) {
 
     startTransition(async () => {
       setError(null)
-      const { error } = await authClient.emailOtp.verifyEmail({ email, otp })
-      if (error) {
-        setError(error.message ?? 'Invalid code')
+      const failure = await runAuth(() => authClient.emailOtp.verifyEmail({ email, otp }))
+      if (failure) {
+        setError(failure.message ?? 'Invalid code')
         return
       }
       router.push(redirect || '/groups')

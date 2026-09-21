@@ -3,6 +3,7 @@
 import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authClient } from '@/lib/auth/client'
+import { runAuth } from '@/lib/auth/run-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,9 +25,9 @@ export function SignInForm({ redirect }: { redirect?: string }) {
 
     startTransition(async () => {
       setError(null)
-      const { error } = await authClient.signIn.email({ email, password })
-      if (error) {
-        setError(error.message ?? 'Sign in failed')
+      const failure = await runAuth(() => authClient.signIn.email({ email, password }))
+      if (failure) {
+        setError(failure.status === 401 ? t('invalidCredentials') : failure.message || t('genericError'))
         return
       }
       router.push(redirect || '/groups')

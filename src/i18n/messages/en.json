@@ -470,7 +470,9 @@
       "submitting": "Signing in…",
       "submit": "Sign in",
       "noAccount": "Don't have an account?",
-      "signUpLink": "Sign up"
+      "signUpLink": "Sign up",
+      "invalidCredentials": "Incorrect email or password. Please try again.",
+      "genericError": "Could not sign in. Please try again."
     },
     "signUp": {
       "pageTitle": "Create an account",

@@ -470,7 +470,9 @@
       "submitting": "Loggar in…",
       "submit": "Logga in",
       "noAccount": "Har du inget konto?",
-      "signUpLink": "Registrera dig"
+      "signUpLink": "Registrera dig",
+      "invalidCredentials": "Fel e-postadress eller lösenord. Försök igen.",
+      "genericError": "Det gick inte att logga in. Försök igen."
     },
     "signUp": {
       "pageTitle": "Skapa ett konto",

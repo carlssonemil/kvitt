@@ -9,10 +9,10 @@ import { ROUTES } from '@/lib/constants'
 
 export default function GroupError({
   error,
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   const [isAutoRetrying, setIsAutoRetrying] = useState(true)
 
@@ -24,10 +24,10 @@ export default function GroupError({
     if (!isAutoRetrying) return
     const timer = setTimeout(() => {
       setIsAutoRetrying(false)
-      unstable_retry()
+      retry()
     }, 3000)
     return () => clearTimeout(timer)
-  }, [isAutoRetrying, unstable_retry])
+  }, [isAutoRetrying, retry])
 
   if (isAutoRetrying) {
     return (
@@ -49,7 +49,7 @@ export default function GroupError({
         <p className="text-sm text-muted-foreground">An unexpected error occurred. Please try again.</p>
       </div>
       <div className="flex gap-2">
-        <Button variant="outline" onClick={unstable_retry}>Try again</Button>
+        <Button variant="outline" onClick={retry}>Try again</Button>
         <Button variant="ghost" asChild>
           <Link href={ROUTES.GROUPS}>Back to groups</Link>
         </Button>

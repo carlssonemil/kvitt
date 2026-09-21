@@ -7,10 +7,10 @@ import { AnimatedBird } from '@/components/auth/animated-bird'
 
 export default function GlobalError({
   error,
-  unstable_retry,
+  retry,
 }: {
   error: Error & { digest?: string }
-  unstable_retry: () => void
+  retry: () => void
 }) {
   const [isAutoRetrying, setIsAutoRetrying] = useState(true)
 
@@ -22,10 +22,10 @@ export default function GlobalError({
     if (!isAutoRetrying) return
     const timer = setTimeout(() => {
       setIsAutoRetrying(false)
-      unstable_retry()
+      retry()
     }, 3000)
     return () => clearTimeout(timer)
-  }, [isAutoRetrying, unstable_retry])
+  }, [isAutoRetrying, retry])
 
   if (isAutoRetrying) {
     return (
@@ -46,7 +46,7 @@ export default function GlobalError({
         <h1 className="text-lg font-semibold">Something went wrong</h1>
         <p className="text-sm text-muted-foreground">An unexpected error occurred. Please try again.</p>
       </div>
-      <Button variant="outline" onClick={unstable_retry}>Try again</Button>
+      <Button variant="outline" onClick={retry}>Try again</Button>
     </main>
   )
 }

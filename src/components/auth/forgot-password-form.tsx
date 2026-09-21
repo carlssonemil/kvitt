@@ -4,6 +4,7 @@ import { useTransition, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AnimatePresence, motion } from 'framer-motion'
 import { authClient } from '@/lib/auth/client'
+import { runAuth } from '@/lib/auth/run-auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -47,9 +48,9 @@ export function ForgotPasswordForm() {
 
     startTransition(async () => {
       setError(null)
-      const { error } = await authClient.emailOtp.resetPassword({ email, otp, password })
-      if (error) {
-        setError(error.message ?? 'Failed to reset password')
+      const failure = await runAuth(() => authClient.emailOtp.resetPassword({ email, otp, password }))
+      if (failure) {
+        setError(failure.message ?? 'Failed to reset password')
         return
       }
       router.push('/auth/sign-in')

@@ -17,6 +17,7 @@ function Calendar({
   classNames,
   showOutsideDays = true,
   captionLayout = "label",
+  weekStartsOn = 1,
   buttonVariant = "ghost",
   locale,
   formatters,
@@ -37,6 +38,7 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
+      weekStartsOn={weekStartsOn}
       locale={locale}
       formatters={{
         formatMonthDropdown: (date) =>

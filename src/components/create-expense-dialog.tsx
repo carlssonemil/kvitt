@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import { format } from 'date-fns'
 import { UserAvatar } from '@/components/user-avatar'
 import { createExpense } from '@/actions/expense-actions'
 import { useGroupStatsCache } from '@/components/group-stats-cache'
@@ -162,7 +163,7 @@ export function CreateExpenseDialog({ groupId, currency, members, currentUserId,
     formData.set('group_id', groupId)
     formData.set('currency', selectedCurrency)
     formData.set('paid_by', paidBy)
-    formData.set('date', selectedDate.toISOString().slice(0, 10))
+    formData.set('date', format(selectedDate, 'yyyy-MM-dd'))
     formData.set('splits', JSON.stringify(splits))
     if (category) formData.set('category', category)
 

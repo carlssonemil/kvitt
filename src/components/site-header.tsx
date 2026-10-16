@@ -8,8 +8,27 @@ import { Button } from '@/components/ui/button'
 import { LocaleSwitcher } from '@/components/locale-switcher'
 import { getTranslations } from 'next-intl/server'
 
+type AuthState = Awaited<ReturnType<typeof neonAuth>>
+
+// SiteHeader lives in the root layout, which no error.tsx can catch. neonAuth()
+// throws when the auth backend is cold/unreachable or returns a non-JSON error,
+// which would otherwise surface as Next's built-in "This page couldn't load".
+// Retry once, then degrade to the signed-out header; pages do their own auth
+// checks and are covered by their error boundaries.
+async function getHeaderAuth(): Promise<AuthState> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await neonAuth()
+    } catch (error) {
+      console.error('SiteHeader: failed to fetch session', error)
+      if (attempt === 0) await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+  }
+  return { session: null, user: null } as AuthState
+}
+
 export async function SiteHeader() {
-  const { session, user } = await neonAuth()
+  const { session, user } = await getHeaderAuth()
   const t = await getTranslations('nav')
 
   if (!session) {
